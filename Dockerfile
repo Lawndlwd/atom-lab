@@ -5,26 +5,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
+# ----- builder: compiles native deps (better-sqlite3) + builds client/server -----
 FROM base AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY pnpm-lock.yaml package.json ./
 COPY prisma ./prisma
 RUN pnpm install --frozen-lockfile
+
 COPY . .
 RUN pnpm build
 
+# keep only prod deps in node_modules; drops tsx/vite/typescript/etc.
+RUN pnpm prune --prod
+
+# ----- runtime: slim image, no compilers, reuses builder's node_modules -----
 FROM base AS runtime
 ENV NODE_ENV=production
-WORKDIR /app
 
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
-
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 RUN mkdir -p /app/data && chown -R node:node /app/data
 USER node
