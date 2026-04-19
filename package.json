@@ -1,5 +1,5 @@
 {
-  "name": "atom-lab-identity",
+  "name": "atom-lab",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "dev:client": "vite",
     "build": "pnpm build:client && pnpm build:server",
     "build:client": "vite build",
-    "build:server": "tsc -p tsconfig.server.json",
+    "build:server": "esbuild src/server/main.ts --bundle --platform=node --format=esm --outfile=dist/server/main.js --packages=external --sourcemap --target=node20 --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
     "start": "node dist/server/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.tools.json",
     "lint": "oxlint -c .oxlintrc.jsonc --quiet",
@@ -68,6 +68,7 @@
     "@types/web-push": "^3.6.4",
     "@vitejs/plugin-react-swc": "^3.7.2",
     "concurrently": "^9.1.0",
+    "esbuild": "^0.28.0",
     "oxfmt": "0.42.0",
     "oxlint": "1.57.0",
     "tailwindcss": "^4.0.0-beta.8",

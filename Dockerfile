@@ -40,4 +40,4 @@ ENV PORT=5174
 EXPOSE 5174
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["sh", "-lc", "pnpm db:deploy && node dist/server/server/main.js"]
+CMD ["sh", "-lc", "pnpm db:deploy && node dist/server/main.js"]

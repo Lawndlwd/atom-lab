@@ -5,8 +5,8 @@ Self-hosted multi-user PWA for daily identity tracking, weekly review, and an ap
 ## Deploy
 
 ```sh
-curl -O https://raw.githubusercontent.com/lawndlwd/atom-lab-identity/main/docker-compose.yml
-curl -O https://raw.githubusercontent.com/lawndlwd/atom-lab-identity/main/.env.example
+curl -O https://raw.githubusercontent.com/lawndlwd/atom-lab/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/lawndlwd/atom-lab/main/.env.example
 mv .env.example .env
 pnpm vapid   # or generate VAPID keys from any web-push-compatible tool
 ```
@@ -42,7 +42,7 @@ Update:
 docker compose pull && docker compose up -d
 ```
 
-The image is pulled automatically from `ghcr.io/lawndlwd/atom-lab-identity:latest`. Prisma migrations run on container start.
+The image is pulled automatically from `ghcr.io/lawndlwd/atom-lab:latest`. Prisma migrations run on container start.
 
 ## Development
 

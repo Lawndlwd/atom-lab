@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/lawndlwd/atom-lab-identity:latest
+    image: ghcr.io/lawndlwd/atom-lab:latest
     restart: unless-stopped
     ports:
       - "127.0.0.1:5174:5174"

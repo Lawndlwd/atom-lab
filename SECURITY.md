@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Only the `main` branch and the latest image (`ghcr.io/lawndlwd/atom-lab-identity:latest`) receive security fixes.
+Only the `main` branch and the latest image (`ghcr.io/lawndlwd/atom-lab:latest`) receive security fixes.
 
 ## Reporting a vulnerability
 
