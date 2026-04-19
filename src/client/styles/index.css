@@ -653,7 +653,7 @@ html {
   border: 0.5px solid var(--line-2);
 }
 
-/* ---------- JOURNAL editor ---------- */
+/* ---------- JOURNAL editor (BlockSuite) ---------- */
 .journal-editor-wrap {
   min-height: 420px;
   padding: 10px;
@@ -666,4 +666,41 @@ html {
 .journal-editor {
   min-height: 420px;
   height: 100%;
+}
+
+/* BlockSuite's <page-editor> ships its own `background: var(--affine-background-primary-color)` rule
+   that wins over our CSS-var remap. Force transparent so our card shows through in both themes. */
+page-editor {
+  background: transparent !important;
+  color: var(--ink) !important;
+}
+
+/* BlockSuite theme overrides — map Affine's CSS vars to our palette so the
+   editor inherits the canvas/ink tokens and works across dark + light. */
+html {
+  --affine-background-primary-color: var(--bg);
+  --affine-background-secondary-color: var(--bg-1);
+  --affine-background-tertiary-color: var(--bg-2);
+  --affine-background-modal-color: var(--bg);
+  --affine-background-overlay-panel-color: var(--bg-1);
+  --affine-text-primary-color: var(--ink);
+  --affine-text-secondary-color: var(--ink-2);
+  --affine-text-disable-color: var(--ink-4);
+  --affine-text-emphasis-color: var(--teal);
+  --affine-border-color: var(--line-2);
+  --affine-divider-color: var(--line);
+  --affine-brand-color: var(--teal);
+  --affine-hover-color: var(--bg-2);
+  --affine-hover-color-filled: var(--bg-2);
+  --affine-icon-color: var(--ink-2);
+  --affine-icon-secondary: var(--ink-3);
+  --affine-placeholder-color: var(--ink-3);
+  --affine-note-background-white: var(--bg);
+  --affine-note-background-black: var(--bg);
+  --affine-editor-width: 100%;
+  --affine-editor-side-padding: 24px;
+  --affine-font-family: "Inter", system-ui, sans-serif;
+  --affine-font-sans-family: "Inter", system-ui, sans-serif;
+  --affine-font-serif-family: "Fraunces", serif;
+  --affine-font-mono-family: "Geist Mono", ui-monospace, monospace;
 }
