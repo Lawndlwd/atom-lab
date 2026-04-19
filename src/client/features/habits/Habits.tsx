@@ -35,6 +35,9 @@ export default function Habits() {
   const archiveIdentity = trpc.identity.archive.useMutation({
     onSuccess: () => util.habits.dashboard.invalidate(),
   });
+  const updateIdentity = trpc.identity.update.useMutation({
+    onSuccess: () => util.habits.dashboard.invalidate(),
+  });
 
   const [showAdd, setShowAdd] = useState(false);
   const [globalErr, setGlobalErr] = useState<string | null>(null);
@@ -124,7 +127,19 @@ export default function Habits() {
                   </div>
                 </div>
                 <span className="chip">{h.cadence}</span>
-                <span className="time">{formatScheduledTime(h.scheduledTime, tz, "long")}</span>
+                <input
+                  type="time"
+                  className="input"
+                  style={{ width: 110, padding: "6px 8px", fontSize: 13 }}
+                  defaultValue={h.scheduledTime}
+                  onBlur={(e) => {
+                    const v = e.target.value;
+                    if (/^\d{2}:\d{2}$/.test(v) && v !== h.scheduledTime) {
+                      updateIdentity.mutate({ id: h.id, scheduledTime: v });
+                    }
+                  }}
+                  title={"Scheduled: " + formatScheduledTime(h.scheduledTime, tz, "long")}
+                />
                 <div className="flex items-center gap-2">
                   <span className={"streak" + (low ? " low" : "")}>{h.streak}d</span>
                   <button
