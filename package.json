@@ -11,7 +11,7 @@
     "build:client": "vite build",
     "build:server": "tsc -p tsconfig.server.json",
     "start": "node dist/server/main.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.tools.json",
     "lint": "oxlint -c .oxlintrc.jsonc --quiet",
     "lint:fix": "oxlint -c .oxlintrc.jsonc --fix",
     "format": "oxfmt --write .",
