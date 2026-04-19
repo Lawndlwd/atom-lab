@@ -1,0 +1,23 @@
+{$DOMAIN:identity.example.com} {
+	encode zstd gzip
+
+	@api path /trpc/* /api/*
+	handle @api {
+		reverse_proxy app:5174 {
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	handle {
+		reverse_proxy app:5174 {
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "accelerometer=(), camera=(), geolocation=(), microphone=(), payment=(), usb=()"
+	}
+}

@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  timezone     String    @default("UTC")
+  onboardedAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  sessions       Session[]
+  identities     Identity[]
+  votes          Vote[]
+  reviews        Review[]
+  journalTypes   JournalType[]
+  journalEntries JournalEntry[]
+  habitBacklog   HabitBacklog[]
+  config         Config?
+  pushSubs       PushSubscription[]
+  bsDocs         BlockSuiteDoc[]
+  pushLogs       PushLog[]
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Identity {
+  id            String    @id @default(cuid())
+  userId        String
+  statement     String
+  action        String
+  scheduledTime String
+  cadence       String
+  status        String    @default("active")
+  createdAt     DateTime  @default(now())
+  archivedAt    DateTime?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes    Vote[]
+  pushLogs PushLog[]
+
+  @@index([userId, status])
+}
+
+model Vote {
+  id         String   @id @default(cuid())
+  userId     String
+  identityId String
+  date       String
+  done       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  identity Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([identityId, date])
+  @@index([userId, date])
+}
+
+model Review {
+  id          String    @id @default(cuid())
+  userId      String
+  year        Int
+  weekNumber  Int
+  answers     String    @default("{}")
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, year, weekNumber])
+}
+
+model JournalType {
+  id     String @id @default(cuid())
+  userId String
+  slug   String
+  label  String
+  order  Int    @default(0)
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries JournalEntry[]
+
+  @@unique([userId, slug])
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  typeId    String
+  title     String
+  status    String   @default("idea")
+  bsDocId   String   @unique
+  createdAt DateTime @default(now())
+
+  type JournalType   @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  doc  BlockSuiteDoc @relation(fields: [bsDocId], references: [id], onDelete: Cascade)
+
+  @@index([userId, typeId])
+}
+
+model BlockSuiteDoc {
+  id        String   @id
+  userId    String
+  state     Bytes
+  updatedAt DateTime @updatedAt
+
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots BlockSuiteSnapshot[]
+  entry     JournalEntry?
+}
+
+model BlockSuiteSnapshot {
+  id        String   @id @default(cuid())
+  docId     String
+  state     Bytes
+  createdAt DateTime @default(now())
+
+  doc BlockSuiteDoc @relation(fields: [docId], references: [id], onDelete: Cascade)
+
+  @@index([docId, createdAt])
+}
+
+model HabitBacklog {
+  id            String    @id @default(cuid())
+  userId        String
+  statement     String
+  action        String
+  cadence       String
+  scheduledTime String?
+  unlocksAt     DateTime?
+  status        String    @default("locked")
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Config {
+  userId           String @id
+  ruleText         String @default("One new habit per month. All active must hold 14 days before unlock.")
+  newHabitCooldown Int    @default(30)
+  minimumStreak    Int    @default(14)
+  maxActiveHabits  Int    @default(5)
+  lastUnlockAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushLog {
+  id         String   @id @default(cuid())
+  userId     String
+  identityId String
+  date       String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identity Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, identityId, date])
+}

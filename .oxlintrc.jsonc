@@ -1,0 +1,73 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["import", "node", "oxc", "react", "typescript", "unicorn", "jsx-a11y"],
+  "options": {
+    "reportUnusedDisableDirectives": "error",
+    "typeAware": false,
+    "typeCheck": false,
+  },
+  "ignorePatterns": [
+    "dist/**",
+    "data/**",
+    "design/**",
+    "prisma/migrations/**",
+    "public/**",
+    "node_modules/**",
+    "**/*.d.ts",
+  ],
+  "rules": {
+    "eslint/no-console": "off",
+    "eslint/no-unused-vars": "off",
+    "eslint/no-shadow": "warn",
+    "eslint/no-use-before-define": "off",
+    "eslint/no-unused-expressions": "warn",
+    "eslint/complexity": ["warn", { "max": 30 }],
+
+    "typescript/consistent-type-imports": ["error", { "disallowTypeAnnotations": false }],
+    "typescript/no-explicit-any": "warn",
+    "typescript/no-non-null-assertion": "off",
+    "typescript/no-misused-promises": "warn",
+    "typescript/no-unused-vars": "warn",
+    "typescript/no-unsafe-argument": "off",
+    "typescript/no-unsafe-assignment": "off",
+    "typescript/no-unsafe-call": "off",
+    "typescript/no-unsafe-member-access": "off",
+    "typescript/no-unsafe-return": "off",
+
+    "react/jsx-key": "error",
+    "react/jsx-no-target-blank": "error",
+    "react/no-array-index-key": "warn",
+    "react/display-name": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-uses-react": "off",
+
+    "import/no-duplicates": "warn",
+    "import/no-cycle": "warn",
+    "import/no-unassigned-import": "off",
+
+    "unicorn/catch-error-name": "off",
+    "unicorn/prefer-ternary": "off",
+    "unicorn/prefer-module": "off",
+    "unicorn/no-array-callback-reference": "off",
+    "unicorn/prevent-abbreviations": "off",
+    "unicorn/no-useless-undefined": "off",
+
+    "jsx-a11y/no-autofocus": "warn",
+    "jsx-a11y/label-has-associated-control": "off",
+  },
+  "overrides": [
+    {
+      "files": ["src/client/sw.ts"],
+      "rules": {
+        "typescript/consistent-type-imports": "off",
+      },
+    },
+    {
+      "files": ["scripts/**/*.ts", "*.config.ts", "vite.config.ts"],
+      "rules": {
+        "node/no-process-env": "off",
+        "eslint/no-console": "off",
+      },
+    },
+  ],
+}

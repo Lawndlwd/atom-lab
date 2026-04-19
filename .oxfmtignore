@@ -1,0 +1,7 @@
+dist
+data
+design
+node_modules
+prisma/migrations
+public/offline.html
+pnpm-lock.yaml
