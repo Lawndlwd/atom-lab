@@ -10,6 +10,7 @@
   --ink-4: #504a42;
   --line: rgba(237, 231, 215, 0.07);
   --line-2: rgba(237, 231, 215, 0.14);
+  --grid: rgba(237, 231, 215, 0.12);
   --teal: #7cb5a5;
   --teal-ink: #0a1a16;
   --teal-soft: rgba(124, 181, 165, 0.12);
@@ -35,6 +36,7 @@
   --ink-4: #9a9080;
   --line: rgba(42, 36, 28, 0.08);
   --line-2: rgba(42, 36, 28, 0.16);
+  --grid: rgba(42, 36, 28, 0.22);
   --teal: #4a8a7a;
   --teal-ink: #f4efe1;
   --teal-soft: rgba(74, 138, 122, 0.14);

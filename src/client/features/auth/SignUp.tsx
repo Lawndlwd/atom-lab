@@ -26,7 +26,7 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen grid place-items-center p-6">
+    <div className="min-h-dvh grid place-items-center p-6">
       <div className="card max-w-sm w-full">
         <div className="eyebrow">Identity</div>
         <h1 className="title-md mt-2">Create an account.</h1>

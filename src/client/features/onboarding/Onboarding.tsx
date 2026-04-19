@@ -173,7 +173,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen px-6 pt-10 pb-8 lg:p-14 max-w-3xl mx-auto">
+    <div className="min-h-dvh px-6 pt-10 pb-8 lg:p-14 max-w-3xl mx-auto">
       <div className="eyebrow eyebrow-teal">
         Onboarding · step {s.step + 1} of {total}
       </div>
