@@ -487,6 +487,10 @@ html {
 .slab.done {
   background: var(--teal);
 }
+.slab.partial {
+  background: var(--teal-soft);
+  border: 1px dashed var(--teal);
+}
 .slab.miss {
   background: var(--bg-1);
   border: 0.5px dashed var(--line-2);

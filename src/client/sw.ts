@@ -61,7 +61,7 @@ self.addEventListener("notificationclick", (event) => {
   const data = (event.notification as Notification).data ?? {};
   event.waitUntil(
     (async () => {
-      if (action === "done" && data.identityId) {
+      if ((action === "done" || action === "partial") && data.identityId) {
         try {
           await fetch("/api/push/ack", {
             method: "POST",
@@ -69,7 +69,7 @@ self.addEventListener("notificationclick", (event) => {
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               identityId: data.identityId,
-              action: "done",
+              action,
               date: data.date ?? new Date().toISOString().slice(0, 10),
             }),
           });

@@ -20,6 +20,14 @@ export default function Settings() {
       nav("/signin", { replace: true });
     },
   });
+  const resetOnboarding = trpc.onboarding.reset.useMutation({
+    onSuccess: async () => {
+      await util.invalidate();
+      await refetch();
+      nav("/onboarding", { replace: true });
+    },
+    onError: (e) => setErr(e.message),
+  });
 
   async function onEnable() {
     setErr(null);
@@ -53,7 +61,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="px-5 pt-10 pb-6 lg:p-14 max-w-2xl">
+    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-2xl mx-auto">
       <div className="eyebrow">Settings</div>
       <h1 className="title-lg mt-2">Your knobs.</h1>
 
@@ -85,6 +93,32 @@ export default function Settings() {
         <div className="mt-4">
           <ThemeToggle variant="inline" />
         </div>
+      </section>
+
+      <ImportJsonCard />
+
+      <section className="card mt-6">
+        <div className="eyebrow">Restart onboarding</div>
+        <p className="body-sm mt-3">
+          Wipe identities, backlog, rules, journal types, config, votes, reviews, and journal
+          entries. Account stays. Use this if your first run was a test.
+        </p>
+        <button
+          className="btn btn-secondary mt-4"
+          style={{ color: "var(--red)" }}
+          disabled={resetOnboarding.isPending}
+          onClick={() => {
+            if (
+              confirm(
+                "Wipe all onboarding data and start over? Identities, rules, backlog, journal entries, votes, and reviews will be deleted. This cannot be undone.",
+              )
+            ) {
+              resetOnboarding.mutate({ confirm: true });
+            }
+          }}
+        >
+          {resetOnboarding.isPending ? "Wiping…" : "Wipe data & restart onboarding"}
+        </button>
       </section>
 
       <section className="card mt-6">
@@ -132,5 +166,94 @@ export default function Settings() {
         )}
       </section>
     </div>
+  );
+}
+
+const IMPORT_EXAMPLE = `{
+  "identities": [
+    { "statement": "I am a reader.", "action": "Read 1 page", "scheduledTime": "22:00", "cadence": "daily" }
+  ],
+  "backlog": [
+    { "statement": "I am a runner.", "action": "Run 2 km", "cadence": "weekdays", "scheduledTime": "07:00" }
+  ],
+  "rules": [
+    { "text": "No phone before 10am." }
+  ],
+  "journalTypes": [
+    { "slug": "writing", "label": "Writing", "order": 0 }
+  ]
+}`;
+
+function ImportJsonCard() {
+  const util = trpc.useUtils();
+  const [text, setText] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const importMut = trpc.data.import.useMutation({
+    onSuccess: async (res) => {
+      setMsg(
+        `Imported ${res.counts.identities} identities · ${res.counts.backlog} backlog · ${res.counts.rules} rules · ${res.counts.journalTypes} journal types.`,
+      );
+      setText("");
+      await Promise.all([
+        util.habits.dashboard.invalidate(),
+        util.rules.list.invalidate(),
+        util.identity.listAll.invalidate().catch(() => {}),
+      ]);
+    },
+    onError: (e) => setErr(e.message),
+  });
+
+  function submit() {
+    setErr(null);
+    setMsg(null);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      setErr("Invalid JSON: " + (e instanceof Error ? e.message : String(e)));
+      return;
+    }
+    importMut.mutate(parsed as Parameters<typeof importMut.mutate>[0]);
+  }
+
+  return (
+    <section className="card mt-6">
+      <div className="eyebrow">Import JSON</div>
+      <p className="body-sm mt-3">
+        Paste identities, future identities (backlog), rules, or journal types. Any missing key is
+        skipped.
+      </p>
+      <textarea
+        className="input mt-3"
+        placeholder={IMPORT_EXAMPLE}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={10}
+        style={{ fontFamily: "Geist Mono, monospace", fontSize: 12, width: "100%" }}
+      />
+      <div className="flex gap-2 mt-3 flex-wrap">
+        <button
+          className="btn btn-primary"
+          disabled={importMut.isPending || !text.trim()}
+          onClick={submit}
+        >
+          {importMut.isPending ? "Importing…" : "Import"}
+        </button>
+        <button className="btn btn-ghost" onClick={() => setText(IMPORT_EXAMPLE)}>
+          Load example
+        </button>
+      </div>
+      {err && (
+        <div className="body-sm mt-3" style={{ color: "var(--red)" }}>
+          {err}
+        </div>
+      )}
+      {msg && (
+        <div className="body-sm mt-3" style={{ color: "var(--teal)" }}>
+          {msg}
+        </div>
+      )}
+    </section>
   );
 }

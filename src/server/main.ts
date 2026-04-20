@@ -19,7 +19,27 @@ const isProd = process.env.NODE_ENV === "production";
 
 const app = new Hono();
 
-app.use("*", logger());
+app.use(
+  "*",
+  logger((msg: string, ...rest: string[]) => {
+    const pretty = (s: string) => {
+      let out = s;
+      try {
+        out = decodeURIComponent(out);
+      } catch {
+        /* ignore */
+      }
+      return out.replace(/([?&])(\w+)=(\{[\s\S]*?\}|\[[\s\S]*?\])(?=&|$|\s)/g, (_m, sep, key, val) => {
+        try {
+          return `${sep}${key}=\n${JSON.stringify(JSON.parse(val), null, 2)}`;
+        } catch {
+          return `${sep}${key}=${val}`;
+        }
+      });
+    };
+    console.log(pretty(msg), ...rest.map(pretty));
+  }),
+);
 
 if (!isProd) {
   app.use(
@@ -51,7 +71,8 @@ app.post("/api/push/ack", async (c) => {
     return c.json({ ok: false, error: "expired" }, 401);
 
   const body = (await c.req.json()) as { identityId?: string; action?: string; date?: string };
-  if (!body.identityId || body.action !== "done" || !body.date) {
+  const act = body.action;
+  if (!body.identityId || (act !== "done" && act !== "partial") || !body.date) {
     return c.json({ ok: false, error: "bad_request" }, 400);
   }
   const id = await db.identity.findFirst({
@@ -59,10 +80,17 @@ app.post("/api/push/ack", async (c) => {
   });
   if (!id) return c.json({ ok: false }, 404);
 
+  const isPartial = act === "partial";
   await db.vote.upsert({
     where: { identityId_date: { identityId: id.id, date: body.date } },
-    create: { identityId: id.id, userId: session.userId, date: body.date, done: true },
-    update: { done: true },
+    create: {
+      identityId: id.id,
+      userId: session.userId,
+      date: body.date,
+      done: true,
+      partial: isPartial,
+    },
+    update: { done: true, partial: isPartial },
   });
   return c.json({ ok: true });
 });

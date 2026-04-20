@@ -8,6 +8,7 @@ type Key = (typeof REVIEW_QUESTIONS)[number]["key"];
 
 export default function Review() {
   const current = trpc.review.current.useQuery(undefined, { staleTime: 10_000 });
+  const groups = trpc.groups.list.useQuery(undefined, { staleTime: 30_000 });
   const util = trpc.useUtils();
   const [step, setStep] = useState(0);
 
@@ -55,7 +56,7 @@ export default function Review() {
   const curQ = REVIEW_QUESTIONS[step];
 
   return (
-    <div className="px-5 pt-10 pb-6 lg:p-14 max-w-[1120px]">
+    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1120px] mx-auto">
       <header className="flex items-end justify-between gap-6 flex-wrap mb-6">
         <div>
           <div className="eyebrow">Sunday review · Week {current.data?.weekNumber ?? "—"}</div>
@@ -132,14 +133,41 @@ export default function Review() {
             {curQ.hint}
           </p>
 
-          <textarea
-            className="textarea mt-5"
-            placeholder="Type your answer…"
-            value={draft[curQ.key] ?? ""}
-            onChange={(e) => onChange(curQ.key, e.target.value)}
-            disabled={locked}
-            rows={6}
-          />
+          {curQ.key === "q6" ? (
+            <>
+              <input
+                className="input mt-5"
+                placeholder="Group name…"
+                value={draft[curQ.key] ?? ""}
+                onChange={(e) => onChange(curQ.key, e.target.value)}
+                disabled={locked}
+                list="review-groups"
+              />
+              {groups.data && groups.data.length > 0 && (
+                <datalist id="review-groups">
+                  {groups.data.map((g) => (
+                    <option key={g.id} value={g.name}>
+                      {g.identityItSupports}
+                    </option>
+                  ))}
+                </datalist>
+              )}
+              {groups.data && groups.data.length === 0 && (
+                <p className="body-sm mt-2" style={{ color: "var(--ink-3)", fontSize: 11 }}>
+                  No groups saved yet — add one on the Habits screen.
+                </p>
+              )}
+            </>
+          ) : (
+            <textarea
+              className="textarea mt-5"
+              placeholder="Type your answer…"
+              value={draft[curQ.key] ?? ""}
+              onChange={(e) => onChange(curQ.key, e.target.value)}
+              disabled={locked}
+              rows={6}
+            />
+          )}
           {!(draft[curQ.key] ?? "").trim() && !locked && (
             <div className="body-sm mt-1" style={{ color: "var(--ink-3)" }}>
               <span className="caret" /> waiting

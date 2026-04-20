@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { router, onboardedProcedure } from "../trpc";
-import { backlogCreateInput, configInput } from "../../shared/schema";
+import { backlogCreateInput, backlogUpdateInput, configInput } from "../../shared/schema";
 import { computeStreak } from "../../shared/streak";
 import { canUnlock } from "../../shared/rule";
 
@@ -59,6 +59,11 @@ export const habitsRouter = router({
         cadence: id.cadence,
         scheduledTime: id.scheduledTime,
         streak,
+        cueLocation: id.cueLocation,
+        stackAfter: id.stackAfter,
+        mindsetReframe: id.mindsetReframe,
+        immediateReward: id.immediateReward,
+        groupId: id.groupId,
       };
     });
 
@@ -133,6 +138,13 @@ export const habitsRouter = router({
       await ctx.db.habitBacklog.delete({ where: { id: input.id } });
       return { ok: true };
     }),
+
+  updateBacklog: onboardedProcedure.input(backlogUpdateInput).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    const b = await ctx.db.habitBacklog.findFirst({ where: { id, userId: ctx.user.id } });
+    if (!b) throw new TRPCError({ code: "NOT_FOUND" });
+    return ctx.db.habitBacklog.update({ where: { id }, data: rest });
+  }),
 
   promoteBacklog: onboardedProcedure
     .input(z.object({ id: z.string() }))

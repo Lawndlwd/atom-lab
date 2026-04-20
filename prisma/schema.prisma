@@ -26,6 +26,10 @@ model User {
   pushSubs       PushSubscription[]
   bsDocs         BlockSuiteDoc[]
   pushLogs       PushLog[]
+  rules          Rule[]
+  badHabits      BadHabit[]
+  badHabitLogs   BadHabitLog[]
+  groups         Group[]
 }
 
 model Session {
@@ -39,19 +43,25 @@ model Session {
 }
 
 model Identity {
-  id            String    @id @default(cuid())
-  userId        String
-  statement     String
-  action        String
-  scheduledTime String
-  cadence       String
-  status        String    @default("active")
-  createdAt     DateTime  @default(now())
-  archivedAt    DateTime?
+  id               String    @id @default(cuid())
+  userId           String
+  statement        String
+  action           String
+  scheduledTime    String
+  cadence          String
+  status           String    @default("active")
+  cueLocation      String?
+  stackAfter       String?
+  mindsetReframe   String?
+  immediateReward  String?
+  groupId          String?
+  createdAt        DateTime  @default(now())
+  archivedAt       DateTime?
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   votes    Vote[]
   pushLogs PushLog[]
+  group    Group?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
 }
@@ -62,6 +72,7 @@ model Vote {
   identityId String
   date       String
   done       Boolean  @default(false)
+  partial    Boolean  @default(false)
   createdAt  DateTime @default(now())
 
   identity Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
@@ -149,6 +160,21 @@ model HabitBacklog {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Rule {
+  id            String   @id @default(cuid())
+  userId        String
+  text          String
+  description   String?
+  cadence       String?
+  scheduledTime String?
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, order])
+}
+
 model Config {
   userId           String @id
   ruleText         String @default("One new habit per month. All active must hold 14 days before unlock.")
@@ -183,4 +209,54 @@ model PushLog {
   identity Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
 
   @@unique([userId, identityId, date])
+}
+
+model BadHabit {
+  id                     String   @id @default(cuid())
+  userId                 String
+  name                   String
+  description            String?
+  invisibleAction        String?
+  unattractiveReframe    String?
+  difficultAction        String?
+  unsatisfyingConsequence String?
+  status                 String   @default("active")
+  createdAt              DateTime @default(now())
+  archivedAt             DateTime?
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs BadHabitLog[]
+
+  @@index([userId, status])
+}
+
+model BadHabitLog {
+  id         String   @id @default(cuid())
+  userId     String
+  badHabitId String
+  date       String
+  weakened   Boolean  @default(false)
+  note       String?
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badHabit BadHabit @relation(fields: [badHabitId], references: [id], onDelete: Cascade)
+
+  @@unique([badHabitId, date])
+  @@index([userId, date])
+}
+
+model Group {
+  id                 String   @id @default(cuid())
+  userId             String
+  identityItSupports String
+  name               String
+  urlOrContact       String?
+  note               String?
+  joinedAt           DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identities Identity[]
+
+  @@index([userId])
 }

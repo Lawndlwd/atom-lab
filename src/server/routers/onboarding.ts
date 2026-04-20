@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import { router, protectedProcedure } from "../trpc";
 import { onboardingInput } from "../../shared/schema";
 
@@ -52,4 +53,25 @@ export const onboardingRouter = router({
 
     return { ok: true };
   }),
+
+  reset: protectedProcedure
+    .input(z.object({ confirm: z.literal(true) }))
+    .mutation(async ({ ctx }) => {
+      await ctx.db.$transaction(async (tx) => {
+        await tx.vote.deleteMany({ where: { userId: ctx.user.id } });
+        await tx.pushLog.deleteMany({ where: { userId: ctx.user.id } });
+        await tx.identity.deleteMany({ where: { userId: ctx.user.id } });
+        await tx.habitBacklog.deleteMany({ where: { userId: ctx.user.id } });
+        await tx.rule.deleteMany({ where: { userId: ctx.user.id } });
+        await tx.review.deleteMany({ where: { userId: ctx.user.id } });
+        await tx.journalType.deleteMany({ where: { userId: ctx.user.id } });
+        await tx.blockSuiteDoc.deleteMany({ where: { userId: ctx.user.id } });
+        await tx.config.deleteMany({ where: { userId: ctx.user.id } });
+        await tx.user.update({
+          where: { id: ctx.user.id },
+          data: { onboardedAt: null },
+        });
+      });
+      return { ok: true };
+    }),
 });

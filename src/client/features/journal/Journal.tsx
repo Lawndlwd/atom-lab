@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { trpc } from "../../trpc";
 import { IconPlus, IconArrow } from "../../components/icons";
@@ -27,6 +27,29 @@ function JournalList() {
     { enabled: !!activeTypeId },
   );
 
+  const activeType = types.data?.find((t) => t.id === activeTypeId) ?? null;
+  const isLab =
+    !!activeType &&
+    (activeType.slug.toLowerCase().includes("lab") ||
+      activeType.label.toLowerCase().includes("lab") ||
+      activeType.label.toLowerCase().includes("trading"));
+
+  const motion = useMemo(() => {
+    if (!entries.data) return null;
+    const now = Date.now();
+    const weekMs = 7 * 86_400_000;
+    const stuckMs = 14 * 86_400_000;
+    let shipped = 0;
+    let researched = 0;
+    for (const e of entries.data) {
+      const created = new Date(e.createdAt).getTime();
+      const age = now - created;
+      if (e.status === "shipped" && age <= weekMs) shipped += 1;
+      if ((e.status === "idea" || e.status === "building") && age > stuckMs) researched += 1;
+    }
+    return { shipped, researched };
+  }, [entries.data]);
+
   const util = trpc.useUtils();
   const create = trpc.journal.createEntry.useMutation({
     onSuccess: (entry) => {
@@ -38,7 +61,7 @@ function JournalList() {
   const [newTitle, setNewTitle] = useState("");
 
   return (
-    <div className="px-5 pt-10 pb-6 lg:p-14 max-w-[1120px]">
+    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1120px] mx-auto">
       <header className="flex items-end justify-between gap-6 flex-wrap mb-6">
         <div>
           <div className="eyebrow">Journal</div>
@@ -66,6 +89,55 @@ function JournalList() {
           </button>
         ))}
       </div>
+
+      {isLab && motion && (motion.shipped > 0 || motion.researched > 0) && (
+        <div
+          className="card"
+          style={{
+            marginBottom: 16,
+            padding: 14,
+            display: "flex",
+            gap: 24,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <div className="eyebrow" style={{ fontSize: 10, color: "var(--ink-3)" }}>
+              Shipped this week
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 500, marginTop: 2 }}>{motion.shipped}</div>
+          </div>
+          <div>
+            <div className="eyebrow" style={{ fontSize: 10, color: "var(--ink-3)" }}>
+              Researched · not shipped
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 500, marginTop: 2 }}>{motion.researched}</div>
+          </div>
+          {motion.researched > motion.shipped && (
+            <div
+              className="body-sm"
+              style={{
+                marginLeft: "auto",
+                color: "var(--ink-3)",
+                fontStyle: "italic",
+                fontSize: 12,
+                maxWidth: 320,
+              }}
+            >
+              You're in motion, not action. Ship one small thing this week — even badly.
+            </div>
+          )}
+        </div>
+      )}
+
+      {isLab && entries.data && entries.data.length === 0 && (
+        <div className="card mb-6">
+          <div className="eyebrow eyebrow-teal">Nothing shipped</div>
+          <h3 className="title-md mt-2">Motion is not action.</h3>
+          <p className="body-sm mt-2">What's the smallest thing you can ship today?</p>
+        </div>
+      )}
 
       {activeTypeId && (
         <div className="flex gap-2 mb-6">
@@ -178,7 +250,7 @@ function EntryView({ entryId }: { entryId: string }) {
   });
 
   return (
-    <div className="px-5 pt-10 pb-6 lg:p-14 max-w-[1120px]">
+    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1120px] mx-auto">
       <button className="btn btn-ghost mb-4" onClick={() => nav("/journal")}>
         <IconArrow dir="l" /> All entries
       </button>

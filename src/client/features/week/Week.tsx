@@ -22,6 +22,7 @@ export default function Week() {
   void tz;
 
   const q = trpc.vote.week.useQuery({ weekStart }, { staleTime: 30_000 });
+  const bh = trpc.badHabits.week.useQuery({ weekStart }, { staleTime: 30_000 });
 
   const week = useMemo(() => getISOWeek(parse(weekStart, "yyyy-MM-dd", new Date())), [weekStart]);
   const endDate = useMemo(
@@ -39,7 +40,7 @@ export default function Week() {
   }
 
   return (
-    <div className="px-5 pt-10 pb-6 lg:p-14 max-w-[1120px]">
+    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1120px] mx-auto">
       <header className="flex items-end justify-between gap-6 flex-wrap mb-8">
         <div>
           <div className="eyebrow">
@@ -76,15 +77,17 @@ export default function Week() {
             <div className="k">Longest</div>
             <div className="v">{q.data.stats.globalLongest}d</div>
           </div>
-          <div className="week-stat">
-            <div className="k">Missed 2×</div>
-            <div
-              className="v"
-              style={{ color: q.data.stats.missedTwice ? "var(--red)" : "var(--ink)" }}
-            >
-              {q.data.stats.missedTwice ? "yes" : "no"}
+          {bh.data && bh.data.rows.length > 0 && (
+            <div className="week-stat">
+              <div className="k">Bad weakened</div>
+              <div className="v">
+                {bh.data.stats.totalWeakened}
+                <span style={{ color: "var(--ink-3)", fontSize: 14, marginLeft: 4 }}>
+                  /{bh.data.stats.totalOpportunities}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -96,29 +99,45 @@ export default function Week() {
           <div />
         </div>
 
-        {q.data?.rows.map((r) => (
-          <div key={r.id} className="strip-row">
-            <div className="strip-row-head">
-              <div>
-                <div className="stmt">{r.statement}</div>
-                <div className="act">{r.action}</div>
+        {q.data?.rows.map((r) => {
+          const anyMiss = r.slabs.some((s) => s.state === "miss");
+          return (
+            <div key={r.id} className="strip-row">
+              <div className="strip-row-head">
+                <div>
+                  <div className="stmt">{r.statement}</div>
+                  <div className="act">{r.action}</div>
+                </div>
+                <div className="streak-cell" style={{ whiteSpace: "nowrap" }}>
+                  {r.streak}d
+                </div>
               </div>
-              <div className="streak-cell" style={{ whiteSpace: "nowrap" }}>
-                {r.streak}d
+              <div className="strip-row-track week-track-grid">
+                {r.slabs.map((s, i) => (
+                  <div
+                    key={i}
+                    className={"slab " + s.state + (s.isToday ? " today" : "")}
+                    title={`${s.date}: ${s.state}${s.partial ? " (2-min)" : ""}`}
+                  />
+                ))}
+                <div />
               </div>
-            </div>
-            <div className="strip-row-track week-track-grid">
-              {r.slabs.map((s, i) => (
+              {anyMiss && (
                 <div
-                  key={i}
-                  className={"slab " + s.state + (s.isToday ? " today" : "")}
-                  title={`${s.date}: ${s.state}`}
-                />
-              ))}
-              <div />
+                  className="body-sm"
+                  style={{
+                    marginTop: 6,
+                    color: "var(--ink-3)",
+                    fontSize: 11,
+                    fontStyle: "italic",
+                  }}
+                >
+                  Hard day? Did I fall back to the 2-minute version?
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {!q.isPending && (q.data?.rows.length ?? 0) === 0 && (
           <div className="mt-4">
@@ -130,6 +149,44 @@ export default function Week() {
           </div>
         )}
       </div>
+
+      {bh.data && bh.data.rows.length > 0 && (
+        <div className="mt-10">
+          <div className="eyebrow" style={{ color: "var(--ink-3)" }}>
+            Bad habits weakened
+          </div>
+          <div className="strip-dow week-dow-grid mt-3">
+            {DOW.map((d) => (
+              <div key={d}>{d}</div>
+            ))}
+            <div />
+          </div>
+          {bh.data.rows.map((r) => (
+            <div key={r.id} className="strip-row">
+              <div className="strip-row-head">
+                <div>
+                  <div className="stmt" style={{ color: "var(--ink-2)" }}>
+                    {r.name}
+                  </div>
+                </div>
+                <div className="streak-cell" style={{ whiteSpace: "nowrap" }}>
+                  {r.slabs.filter((s) => s.weakened).length}/{r.slabs.length}
+                </div>
+              </div>
+              <div className="strip-row-track week-track-grid">
+                {r.slabs.map((s, i) => (
+                  <div
+                    key={i}
+                    className={"slab " + (s.weakened ? "done" : "pending")}
+                    title={`${s.date}: ${s.weakened ? "weakened" : "open"}`}
+                  />
+                ))}
+                <div />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

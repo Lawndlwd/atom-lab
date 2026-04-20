@@ -67,7 +67,7 @@ export const pushRouter = router({
     .input(
       z.object({
         identityId: z.string(),
-        action: z.enum(["done", "snooze"]),
+        action: z.enum(["done", "partial", "snooze"]),
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       }),
     )
@@ -76,11 +76,18 @@ export const pushRouter = router({
         where: { id: input.identityId, userId: ctx.user.id },
       });
       if (!id) return { ok: false };
-      if (input.action === "done") {
+      if (input.action === "done" || input.action === "partial") {
+        const isPartial = input.action === "partial";
         await ctx.db.vote.upsert({
           where: { identityId_date: { identityId: id.id, date: input.date } },
-          create: { identityId: id.id, userId: ctx.user.id, date: input.date, done: true },
-          update: { done: true },
+          create: {
+            identityId: id.id,
+            userId: ctx.user.id,
+            date: input.date,
+            done: true,
+            partial: isPartial,
+          },
+          update: { done: true, partial: isPartial },
         });
       }
       return { ok: true };

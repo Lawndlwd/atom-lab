@@ -24,6 +24,16 @@ export const REVIEW_QUESTIONS = [
     q: "What did I build, ship, or start? What ships next?",
     hint: "Concrete output. Then the next concrete thing.",
   },
+  {
+    key: "q6",
+    q: "Which group or community reinforced one of my identities this week?",
+    hint: "If none: which one will I join next week? You become the tribe you sit with.",
+  },
+  {
+    key: "q7",
+    q: "Which bad habit did I make invisible or difficult this week — and what's the next step?",
+    hint: "Name the friction you added. Then the next layer of friction.",
+  },
 ] as const;
 
 export type ReviewKey = (typeof REVIEW_QUESTIONS)[number]["key"];

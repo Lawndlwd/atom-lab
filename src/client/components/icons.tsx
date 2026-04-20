@@ -115,6 +115,40 @@ export const IconCheck = ({ size = 12, ...p }: S) => (
   </svg>
 );
 
+/* ─────── four laws ─────── */
+
+// 1st Law — Obvious (eye)
+export const IconEye = ({ size = 14, ...p }: S) => (
+  <svg {...base(size, 1.6)} {...p}>
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+// 2nd Law — Attractive (heart)
+export const IconHeart = ({ size = 14, ...p }: S) => (
+  <svg {...base(size, 1.6)} {...p}>
+    <path d="M20.4 4.6a5.5 5.5 0 0 0-7.8 0L12 5.2l-.6-.6a5.5 5.5 0 0 0-7.8 7.8l.6.6L12 21l7.8-8 .6-.6a5.5 5.5 0 0 0 0-7.8z" />
+  </svg>
+);
+
+// 3rd Law — Easy (feather)
+export const IconFeather = ({ size = 14, ...p }: S) => (
+  <svg {...base(size, 1.6)} {...p}>
+    <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76z" />
+    <path d="M16 8 2 22" />
+    <path d="M17.5 15H9" />
+  </svg>
+);
+
+// 4th Law — Satisfying (check-circle)
+export const IconCheckCircle = ({ size = 14, ...p }: S) => (
+  <svg {...base(size, 1.6)} {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8 12.5 2.6 2.6L16 9.5" />
+  </svg>
+);
+
 /* ─────── settings (unchanged) + theme ─────── */
 
 export const IconSettings = ({ size = 16, ...p }: S) => (

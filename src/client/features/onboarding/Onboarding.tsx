@@ -1,4 +1,4 @@
-import { useReducer, type FormEvent } from "react";
+import { useReducer, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { trpc } from "../../trpc";
 import { useAuth } from "../../providers/auth";
@@ -24,6 +24,7 @@ type State = {
   identities: IdentityDraft[];
   journalTypes: JournalTypeDraft[];
   ruleText: string;
+  extraRules: string[];
   cooldown: number;
   minStreak: number;
   maxActive: number;
@@ -89,6 +90,7 @@ function initialState(name: string, timezone: string): State {
     identities: DEFAULT_IDENTITY_SUGGESTIONS.slice(0, 3),
     journalTypes: DEFAULT_JOURNAL_TYPES.map((j) => ({ ...j })),
     ruleText: "One new habit per month. All active must hold 14 days before unlock.",
+    extraRules: [],
     cooldown: 30,
     minStreak: 14,
     maxActive: 5,
@@ -104,9 +106,19 @@ export default function Onboarding() {
   const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   const [s, dispatch] = useReducer(reducer, null, () => initialState(user?.name ?? "", browserTz));
 
+  const importData = trpc.data.import.useMutation();
   const complete = trpc.onboarding.complete.useMutation({
     onSuccess: async () => {
       const me = await refetch();
+      if (s.extraRules.length && me?.onboardedAt) {
+        try {
+          await importData.mutateAsync({
+            rules: s.extraRules.map((text) => ({ text })),
+          });
+        } catch {
+          /* non-fatal — user can add rules from Habits page */
+        }
+      }
       if (me?.onboardedAt) nav("/today", { replace: true });
     },
   });
@@ -190,6 +202,13 @@ export default function Onboarding() {
           />
         ))}
       </div>
+
+      <JsonPrefill dispatch={dispatch} />
+      {s.extraRules.length > 0 && (
+        <div className="body-sm mb-6" style={{ color: "var(--ink-3)", fontSize: 11 }}>
+          {s.extraRules.length} extra rule(s) will be added after onboarding.
+        </div>
+      )}
 
       {s.step === 0 && (
         <StepCard
@@ -500,6 +519,149 @@ function NumberField({
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
       />
+    </div>
+  );
+}
+
+type Dispatch = (a: Action) => void;
+
+const JSON_PREFILL_EXAMPLE = `{
+  "identities": [
+    { "statement": "I am a reader.", "action": "Read 1 page", "scheduledTime": "22:00", "cadence": "daily" }
+  ],
+  "journalTypes": [
+    { "slug": "writing", "label": "Writing", "order": 0 }
+  ],
+  "ruleText": "One new habit per month.",
+  "cooldown": 30,
+  "minStreak": 14,
+  "maxActive": 5,
+  "rules": ["No phone before 10am.", "Sunday is rest day."]
+}`;
+
+function JsonPrefill({ dispatch }: { dispatch: Dispatch }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  function apply() {
+    setErr(null);
+    setMsg(null);
+    let obj: Record<string, unknown>;
+    try {
+      obj = JSON.parse(text) as Record<string, unknown>;
+    } catch (e) {
+      setErr("Invalid JSON: " + (e instanceof Error ? e.message : String(e)));
+      return;
+    }
+    const patch: Partial<State> = {};
+    const applied: string[] = [];
+    if (Array.isArray(obj.identities)) {
+      patch.identities = (obj.identities as IdentityDraft[]).map((i) => ({
+        statement: String(i.statement ?? ""),
+        action: String(i.action ?? ""),
+        scheduledTime: String(i.scheduledTime ?? "09:00"),
+        cadence: String(i.cadence ?? "daily"),
+      }));
+      applied.push(`${patch.identities.length} identities`);
+    }
+    if (Array.isArray(obj.journalTypes)) {
+      patch.journalTypes = (obj.journalTypes as JournalTypeDraft[]).map((t, idx) => ({
+        slug: String(t.slug ?? `type_${idx + 1}`),
+        label: String(t.label ?? ""),
+        order: typeof t.order === "number" ? t.order : idx,
+      }));
+      applied.push(`${patch.journalTypes.length} journals`);
+    }
+    if (typeof obj.ruleText === "string") {
+      patch.ruleText = obj.ruleText;
+      applied.push("ruleText");
+    }
+    if (typeof obj.cooldown === "number") patch.cooldown = obj.cooldown;
+    if (typeof obj.minStreak === "number") patch.minStreak = obj.minStreak;
+    if (typeof obj.maxActive === "number") patch.maxActive = obj.maxActive;
+    if (Array.isArray(obj.rules)) {
+      const rules = (obj.rules as unknown[])
+        .map((r) => (typeof r === "string" ? r : (r as { text?: unknown })?.text))
+        .filter((t): t is string => typeof t === "string" && t.trim().length > 0)
+        .map((t) => t.trim());
+      patch.extraRules = rules;
+      applied.push(`${rules.length} rules (post-submit)`);
+    }
+    if (applied.length === 0) {
+      setErr(
+        "No recognized fields. Supported: identities, journalTypes, ruleText, cooldown, minStreak, maxActive, rules.",
+      );
+      return;
+    }
+    dispatch({ type: "set", patch });
+    setMsg("Applied: " + applied.join(" · "));
+    setText("");
+  }
+
+  if (!open) {
+    return (
+      <div className="mb-6">
+        <button
+          type="button"
+          className="btn btn-ghost"
+          style={{ fontSize: 12 }}
+          onClick={() => setOpen(true)}
+        >
+          + Prefill from JSON
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card mb-6">
+      <div className="flex items-center justify-between">
+        <div className="eyebrow">Prefill from JSON</div>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          style={{ fontSize: 11 }}
+          onClick={() => setOpen(false)}
+        >
+          Close
+        </button>
+      </div>
+      <p className="body-sm mt-2" style={{ color: "var(--ink-3)" }}>
+        Paste a JSON blob to fill identities, journals, rule text, and extra rules. Extra rules are
+        added right after you click Start tracking.
+      </p>
+      <textarea
+        className="input mt-3"
+        placeholder={JSON_PREFILL_EXAMPLE}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={8}
+        style={{ fontFamily: "Geist Mono, monospace", fontSize: 12, width: "100%" }}
+      />
+      <div className="flex gap-2 mt-3 flex-wrap">
+        <button type="button" className="btn btn-primary" onClick={apply} disabled={!text.trim()}>
+          Apply
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={() => setText(JSON_PREFILL_EXAMPLE)}
+        >
+          Load example
+        </button>
+      </div>
+      {err && (
+        <div className="body-sm mt-2" style={{ color: "var(--red)" }}>
+          {err}
+        </div>
+      )}
+      {msg && (
+        <div className="body-sm mt-2" style={{ color: "var(--teal)" }}>
+          {msg}
+        </div>
+      )}
     </div>
   );
 }

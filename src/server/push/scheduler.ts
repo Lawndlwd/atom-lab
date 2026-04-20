@@ -19,6 +19,31 @@ export function startPushScheduler() {
   console.log("[push] scheduler running (every minute)");
 }
 
+function cadenceWord(c: string): string {
+  switch (c) {
+    case "daily":
+      return "every day";
+    case "weekdays":
+      return "every weekday";
+    case "5x_week":
+      return "5× a week";
+    case "weekends":
+      return "on weekends";
+    default:
+      return "on schedule";
+  }
+}
+
+function buildIntentionTitle(
+  action: string,
+  cadence: string,
+  time: string,
+  loc: string | null,
+): string {
+  const base = `I will ${action} ${cadenceWord(cadence)} at ${time}`;
+  return loc ? `${base} in ${loc}.` : `${base}.`;
+}
+
 export async function runTick(now: Date) {
   const users = await db.user.findMany({
     where: { onboardedAt: { not: null } },
@@ -47,15 +72,19 @@ export async function runTick(now: Date) {
       });
       if (existingLog) continue;
 
+      const title = buildIntentionTitle(id.action, id.cadence, id.scheduledTime, id.cueLocation);
+      const body = id.mindsetReframe ? `I get to ${id.mindsetReframe}` : id.action;
+
       for (const sub of subs) {
         try {
           await sendPush(sub, {
-            title: id.statement,
-            body: id.action,
+            title,
+            body,
             tag: id.id,
             data: { identityId: id.id, date: localDate },
             actions: [
-              { action: "done", title: "Mark done" },
+              { action: "done", title: "Done" },
+              { action: "partial", title: "2-minute version" },
               { action: "snooze", title: "Snooze 15m" },
             ],
           });
