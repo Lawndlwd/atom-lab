@@ -9,9 +9,12 @@ import {
   IconCheckCircle,
 } from "../../components/icons";
 import { CADENCES } from "../../../shared/constants";
+import { stripLead } from "../../../shared/text";
 import { formatScheduledTime } from "../../hooks/useTodayDate";
 import { useAuth } from "../../providers/auth";
 import { EmptyState } from "../../components/EmptyState";
+import { KebabMenu } from "../../components/KebabMenu";
+import { SectionDivider } from "../../components/SectionDivider";
 
 type Cadence = "daily" | "weekdays" | "5x_week" | "weekends" | "custom";
 
@@ -100,7 +103,7 @@ export default function Habits() {
   const active = (dash.data?.active ?? []) as ActiveHabit[];
 
   return (
-    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1180px] mx-auto">
+    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1440px] mx-auto">
       <header className="flex items-end justify-between gap-6 flex-wrap mb-6">
         <div>
           <div className="eyebrow">Habits</div>
@@ -141,116 +144,222 @@ export default function Habits() {
         </div>
       )}
 
-      <RulesSection />
+      <div className="habits-layout">
+        <div>
+          <SectionDivider label="Habits — the laws I live by" />
+          <ActiveHabitsSection
+            active={active}
+            tz={tz}
+            minimumStreak={rule?.minimumStreak ?? 14}
+            onArchive={(id) => archiveIdentity.mutate({ id })}
+            onUpdate={(id, patch) => updateIdentity.mutate({ id, ...patch })}
+          />
 
-      <section className="mt-10">
-        <div className="eyebrow">Active</div>
-        <div className="mt-3">
-          {active.map((h) => (
-            <ActiveHabitRow
-              key={h.id}
-              h={h}
-              tz={tz}
-              minimumStreak={rule?.minimumStreak ?? 14}
-              onArchive={() => archiveIdentity.mutate({ id: h.id })}
-              onUpdate={(patch) => updateIdentity.mutate({ id: h.id, ...patch })}
-            />
-          ))}
-          {active.length === 0 && (
-            <p className="body-sm mt-2" style={{ color: "var(--ink-3)" }}>
-              No active identities yet.
-            </p>
-          )}
-        </div>
-      </section>
-
-      <section className="mt-10">
-        <div className="flex justify-between items-center">
-          <div className="eyebrow">Backlog</div>
-          <button className="btn btn-secondary" onClick={() => setShowAdd((s) => !s)}>
-            <IconPlus /> Add future identity
-          </button>
-        </div>
-
-        {showAdd && (
-          <form
-            onSubmit={onSubmit}
-            className="card mt-4"
-            style={{ display: "flex", gap: 12, flexWrap: "wrap" }}
-          >
-            <input
-              className="input"
-              placeholder="I am a ____."
-              value={statement}
-              onChange={(e) => setStatement(e.target.value)}
-              required
-              style={{ flex: "1 1 260px" }}
-            />
-            <input
-              className="input"
-              placeholder="The daily action"
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
-              required
-              style={{ flex: "1 1 260px" }}
-            />
-            <select
-              className="input"
-              value={cadence}
-              onChange={(e) => setCadence(e.target.value)}
-              style={{ width: 160 }}
-            >
-              {CADENCES.map((c) => (
-                <option key={c.key} value={c.key}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <input
-              className="input"
-              type="time"
-              value={scheduledTime}
-              onChange={(e) => setScheduledTime(e.target.value)}
-              style={{ width: 130 }}
-            />
-            <button className="btn btn-primary" type="submit" disabled={addBacklog.isPending}>
-              {addBacklog.isPending ? "Adding…" : "Add to backlog"}
-            </button>
-            <p
-              className="body-sm"
-              style={{ flex: "1 1 100%", color: "var(--ink-3)", fontSize: 11 }}
-            >
-              Add the cue, stack, reframe, and reward once it's promoted — right on the active card.
-            </p>
-          </form>
-        )}
-
-        <div className="mt-3">
-          {dash.data?.backlog.map((b) => (
-            <BacklogItem
-              key={b.id}
-              b={b}
-              onPromote={() => promote.mutate({ id: b.id })}
-              onDelete={() => {
-                if (confirm(`Delete "${b.statement}"?`)) deleteBacklog.mutate({ id: b.id });
-              }}
-              onSave={(patch) => updateBacklog.mutate({ id: b.id, ...patch })}
-              pending={promote.isPending}
-            />
-          ))}
-          {dash.data && dash.data.backlog.length === 0 && (
-            <div className="card mt-2">
-              <div className="eyebrow eyebrow-teal">Empty</div>
-              <h3 className="title-md mt-2">Nothing waiting.</h3>
-              <p className="body-sm mt-2">Add a future identity when one comes to mind.</p>
+          <SectionDivider label="Backlog — waiting in the wings" />
+          <section>
+            <div className="flex justify-between items-center">
+              <div className="eyebrow">Backlog</div>
+              <button className="btn btn-accent" onClick={() => setShowAdd((s) => !s)}>
+                <IconPlus /> Add future identity
+              </button>
             </div>
-          )}
-        </div>
-      </section>
 
-      <BadHabitsSection />
-      <GroupsSection />
+            {showAdd && (
+              <form
+                onSubmit={onSubmit}
+                className="card mt-4"
+                style={{ display: "flex", gap: 12, flexWrap: "wrap" }}
+              >
+                <input
+                  className="input"
+                  placeholder="I am a ____."
+                  value={statement}
+                  onChange={(e) => setStatement(e.target.value)}
+                  required
+                  style={{ flex: "1 1 260px" }}
+                />
+                <input
+                  className="input"
+                  placeholder="The daily action"
+                  value={action}
+                  onChange={(e) => setAction(e.target.value)}
+                  required
+                  style={{ flex: "1 1 260px" }}
+                />
+                <select
+                  className="input"
+                  value={cadence}
+                  onChange={(e) => setCadence(e.target.value)}
+                  style={{ width: 160 }}
+                >
+                  {CADENCES.map((c) => (
+                    <option key={c.key} value={c.key}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className="input"
+                  type="time"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                  style={{ width: 130 }}
+                />
+                <button className="btn btn-primary" type="submit" disabled={addBacklog.isPending}>
+                  {addBacklog.isPending ? "Adding…" : "Add to backlog"}
+                </button>
+                <p
+                  className="body-sm"
+                  style={{ flex: "1 1 100%", color: "var(--ink-3)", fontSize: 11 }}
+                >
+                  Add the cue, stack, reframe, and reward once it's promoted — right on the active
+                  card.
+                </p>
+              </form>
+            )}
+
+            <div className="habit-grid mt-3">
+              {dash.data?.backlog.map((b) => (
+                <BacklogItem
+                  key={b.id}
+                  b={b}
+                  onPromote={() => promote.mutate({ id: b.id })}
+                  onDelete={() => {
+                    if (confirm(`Delete "${b.statement}"?`)) deleteBacklog.mutate({ id: b.id });
+                  }}
+                  onSave={(patch) => updateBacklog.mutate({ id: b.id, ...patch })}
+                  pending={promote.isPending}
+                />
+              ))}
+            </div>
+            {dash.data && dash.data.backlog.length === 0 && (
+              <div className="card mt-3">
+                <div className="eyebrow eyebrow-teal">Empty</div>
+                <h3 className="title-md mt-2">Nothing waiting.</h3>
+                <p className="body-sm mt-2">Add a future identity when one comes to mind.</p>
+              </div>
+            )}
+          </section>
+
+          <SectionDivider label="Bad habits — the inverse laws" />
+          <BadHabitsSection />
+        </div>
+        <aside style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <SectionDivider label="Rules" />
+          <RulesSection sidebar />
+          <SectionDivider label="Community" />
+          <GroupsSection sidebar />
+        </aside>
+      </div>
     </div>
+  );
+}
+
+type UpdateIdentityPatch = {
+  scheduledTime?: string;
+  cueLocation?: string | null;
+  stackAfter?: string | null;
+  mindsetReframe?: string | null;
+  immediateReward?: string | null;
+  groupId?: string | null;
+  action?: string;
+  cadence?: Cadence;
+};
+
+function ActiveHabitsSection({
+  active,
+  tz,
+  minimumStreak,
+  onArchive,
+  onUpdate,
+}: {
+  active: ActiveHabit[];
+  tz: string;
+  minimumStreak: number;
+  onArchive: (id: string) => void;
+  onUpdate: (id: string, patch: UpdateIdentityPatch) => void;
+}) {
+  const util = trpc.useUtils();
+  const [tab, setTab] = useState<"active" | "archived">("active");
+  const archivedQuery = trpc.identity.listAll.useQuery(undefined, { staleTime: 10_000 });
+  const unarchive = trpc.identity.unarchive.useMutation({
+    onSuccess: () => {
+      util.identity.listAll.invalidate();
+      util.habits.dashboard.invalidate();
+    },
+  });
+  const archivedList = (archivedQuery.data ?? []).filter((i) => i.status === "archived");
+
+  return (
+    <section className="mt-10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="eyebrow">Habits</div>
+        <TabBar
+          tab={tab}
+          setTab={setTab}
+          counts={{ active: active.length, archived: archivedList.length }}
+        />
+      </div>
+      <div className="mt-4">
+        {tab === "active" ? (
+          <>
+            <div className="habit-grid">
+              {active.map((h) => (
+                <ActiveHabitRow
+                  key={h.id}
+                  h={h}
+                  tz={tz}
+                  minimumStreak={minimumStreak}
+                  onArchive={() => onArchive(h.id)}
+                  onUpdate={(patch) => onUpdate(h.id, patch)}
+                />
+              ))}
+            </div>
+            {active.length === 0 && (
+              <p className="body-sm mt-2" style={{ color: "var(--ink-3)" }}>
+                No active identities yet.
+              </p>
+            )}
+          </>
+        ) : (
+          <div className="habit-grid">
+            {archivedList.map((h) => (
+              <div
+                key={h.id}
+                className="card kebab-host"
+                style={{
+                  padding: 16,
+                  paddingRight: 44,
+                  opacity: 0.7,
+                  borderLeft: "3px solid var(--ink-4)",
+                }}
+              >
+                <KebabMenu
+                  actions={[
+                    {
+                      label: "Restore",
+                      tone: "teal",
+                      onClick: () => unarchive.mutate({ id: h.id }),
+                    },
+                  ]}
+                />
+                <div className="habit-card-head">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="title">{h.statement}</div>
+                    <div className="sub">{h.action}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {archivedList.length === 0 && (
+              <p className="body-sm" style={{ color: "var(--ink-3)" }}>
+                No archived habits.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -278,74 +387,65 @@ function ActiveHabitRow({
 }) {
   const [expanded, setExpanded] = useState(false);
   const low = h.streak < minimumStreak;
+  const obvious = `I will ${h.action} ${cadenceWord(h.cadence)} at ${formatScheduledTime(h.scheduledTime, tz, "short")}${h.cueLocation ? ` in ${h.cueLocation}` : ""}.`;
 
-  return (
-    <div className="card" style={{ marginBottom: 10, padding: 14 }}>
-      <div
-        className="habit-row"
-        style={{
-          borderBottom: expanded ? "0.5px solid var(--line)" : "none",
-          paddingBottom: expanded ? 10 : 0,
-          marginBottom: expanded ? 10 : 0,
-        }}
-      >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="stmt" style={{ fontSize: 17 }}>
-            {h.statement}
-          </div>
-          <IntentionSentence h={h} />
-        </div>
-        <span className="chip">{h.cadence}</span>
-        <input
-          type="time"
-          className="input"
-          style={{ width: 110, padding: "6px 8px", fontSize: 13 }}
-          defaultValue={h.scheduledTime}
-          onBlur={(e) => {
-            const v = e.target.value;
-            if (/^\d{2}:\d{2}$/.test(v) && v !== h.scheduledTime) {
-              onUpdate({ scheduledTime: v });
-            }
-          }}
-          title={"Scheduled: " + formatScheduledTime(h.scheduledTime, tz, "long")}
-        />
-        <div className="flex items-center gap-2">
-          <span className={"streak" + (low ? " low" : "")}>{h.streak}d</span>
-          <button
-            className="btn btn-ghost"
-            style={{ fontSize: 11 }}
-            onClick={() => setExpanded((x) => !x)}
-          >
-            {expanded ? "Close" : "Edit"}
-          </button>
-          <button className="btn btn-ghost" style={{ fontSize: 11 }} onClick={onArchive}>
-            Archive
-          </button>
-        </div>
-      </div>
-      {expanded && <IntentionFields h={h} onUpdate={onUpdate} />}
-    </div>
-  );
-}
-
-function IntentionSentence({ h }: { h: ActiveHabit }) {
-  const parts: string[] = [];
-  parts.push(`I will ${h.action}`);
-  parts.push(cadenceWord(h.cadence));
-  parts.push(`at ${h.scheduledTime}`);
-  if (h.cueLocation) parts.push(`in ${h.cueLocation}`);
   return (
     <div
-      className="act"
-      style={{ fontSize: 12, marginTop: 3, color: "var(--ink-2)", lineHeight: 1.5 }}
+      className="card kebab-host"
+      style={{ padding: 20, paddingRight: 44, borderLeft: "3px solid var(--teal)" }}
     >
-      {parts.join(" ")}.
-      {h.stackAfter && (
-        <div style={{ color: "var(--ink-3)", marginTop: 2 }}>After {h.stackAfter}.</div>
-      )}
-      {h.mindsetReframe && (
-        <div style={{ color: "var(--ink-3)", marginTop: 2, fontStyle: "italic" }}>
-          Because I get to {h.mindsetReframe}.
+      <KebabMenu
+        actions={[
+          {
+            label: expanded ? "Close" : "Edit",
+            onClick: () => setExpanded((x) => !x),
+          },
+          {
+            label: "Archive",
+            tone: "red",
+            onClick: () => {
+              if (confirm(`Archive "${h.statement}"?`)) onArchive();
+            },
+          },
+        ]}
+      />
+      <div className="habit-card-head">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="title" style={{ color: "var(--teal)" }}>
+            {h.statement}
+          </div>
+          <div className="sub">
+            <span className={"streak" + (low ? " low" : "")}>{h.streak}d</span>
+            <span style={{ margin: "0 8px", opacity: 0.5 }}>·</span>
+            {h.cadence} · {h.scheduledTime}
+          </div>
+        </div>
+      </div>
+
+      {expanded ? (
+        <IntentionFields h={h} onUpdate={onUpdate} />
+      ) : (
+        <div className="law-grid">
+          <LawDisplayRow icon={<IconEye size={13} />} law="Obvious" value={obvious} />
+          <LawDisplayRow
+            icon={<IconHeart size={13} />}
+            law="Attractive"
+            value={
+              h.mindsetReframe
+                ? `Because I get to ${stripLead(h.mindsetReframe, ["because i get to", "because"])}.`
+                : null
+            }
+          />
+          <LawDisplayRow
+            icon={<IconFeather size={13} />}
+            law="Easy"
+            value={h.stackAfter ? `After ${stripLead(h.stackAfter, ["after"])}.` : null}
+          />
+          <LawDisplayRow
+            icon={<IconCheckCircle size={13} />}
+            law="Satisfying"
+            value={h.immediateReward}
+          />
         </div>
       )}
     </div>
@@ -395,97 +495,85 @@ function IntentionFields({
   }
 
   return (
-    <div style={{ display: "grid", gap: 10 }}>
-      <LawField
-        law="obvious"
-        label="Action"
-        helper={`I will ____ ${cadenceWord(cadence)} at ${h.scheduledTime}.`}
-      >
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <input
-            className="input"
-            value={action}
-            onChange={(e) => setAction(e.target.value)}
-            style={{ flex: "1 1 220px" }}
-          />
+    <div>
+      <div className="law-grid">
+        <div className="law-row">
+          <div className="law-k" title="I will ____ at [time].">
+            <IconEye size={13} />
+            <span>Obvious</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              className="input"
+              value={action}
+              placeholder="Action — e.g. read one page"
+              onChange={(e) => setAction(e.target.value)}
+              style={{ flex: "1 1 220px", padding: "8px 10px", fontSize: 13.5 }}
+            />
+            <select
+              className="input"
+              value={cadence}
+              onChange={(e) => setCadence(e.target.value as Cadence)}
+              style={{ width: 150, padding: "8px 10px", fontSize: 13.5 }}
+            >
+              {CADENCES.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <input
+              className="input"
+              placeholder="Location — bedroom, desk…"
+              value={loc}
+              onChange={(e) => setLoc(e.target.value)}
+              style={{ flex: "1 1 180px", padding: "8px 10px", fontSize: 13.5 }}
+            />
+          </div>
+        </div>
+        <LawEditRow
+          icon={<IconHeart size={13} />}
+          law="Attractive"
+          helper="Because I get to… — feeds the Today long-press."
+          value={reframe}
+          onChange={setReframe}
+        />
+        <LawEditRow
+          icon={<IconFeather size={13} />}
+          law="Easy"
+          helper="After [existing habit]…"
+          value={stack}
+          onChange={setStack}
+        />
+        <LawEditRow
+          icon={<IconCheckCircle size={13} />}
+          law="Satisfying"
+          helper="Cup of tea, favorite song, one tally mark"
+          value={reward}
+          onChange={setReward}
+        />
+        <div className="law-row">
+          <div className="law-k">
+            <IconHeart size={13} />
+            <span>Group</span>
+          </div>
           <select
             className="input"
-            value={cadence}
-            onChange={(e) => setCadence(e.target.value as Cadence)}
-            style={{ width: 160 }}
+            value={groupId}
+            onChange={(e) => setGroupId(e.target.value)}
+            style={{ padding: "8px 10px", fontSize: 13.5 }}
           >
-            {CADENCES.map((c) => (
-              <option key={c.key} value={c.key}>
-                {c.label}
+            <option value="">— none —</option>
+            {groups.data?.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
               </option>
             ))}
           </select>
-          <input
-            className="input"
-            placeholder="Location — e.g. bedroom, desk"
-            value={loc}
-            onChange={(e) => setLoc(e.target.value)}
-            style={{ flex: "1 1 220px" }}
-          />
         </div>
-      </LawField>
+      </div>
 
-      <LawField law="easy" label="Habit stack" helper="After [existing habit], I will do this.">
-        <input
-          className="input"
-          placeholder="After morning coffee…"
-          value={stack}
-          onChange={(e) => setStack(e.target.value)}
-        />
-        {!stack.trim() && (
-          <p className="body-sm" style={{ color: "var(--ink-3)", fontSize: 11, marginTop: 4 }}>
-            This habit has no anchor. Stack it onto something you already do.
-          </p>
-        )}
-      </LawField>
-
-      <LawField
-        law="attractive"
-        label="Mindset reframe"
-        helper="Because I get to… — feeds the Today long-press."
-      >
-        <input
-          className="input"
-          placeholder="…feed my mind before sleep"
-          value={reframe}
-          onChange={(e) => setReframe(e.target.value)}
-        />
-      </LawField>
-
-      <LawField
-        law="satisfying"
-        label="Immediate reward"
-        helper="Small satisfying thing right after."
-      >
-        <input
-          className="input"
-          placeholder="Cup of tea, favorite song, one tally mark"
-          value={reward}
-          onChange={(e) => setReward(e.target.value)}
-        />
-      </LawField>
-
-      <LawField
-        law="attractive"
-        label="My group"
-        helper="The community that reinforces this identity."
-      >
-        <select className="input" value={groupId} onChange={(e) => setGroupId(e.target.value)}>
-          <option value="">— none —</option>
-          {groups.data?.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
-      </LawField>
-
-      <div>
+      <div style={{ marginTop: 14 }}>
         <button className="btn btn-primary" onClick={save}>
           Save
         </button>
@@ -494,72 +582,45 @@ function IntentionFields({
   );
 }
 
-function LawField({
-  law,
-  label,
-  helper,
-  children,
-}: {
-  law: "obvious" | "attractive" | "easy" | "satisfying";
-  label: string;
-  helper: string;
-  children: React.ReactNode;
-}) {
-  const LawIcon =
-    law === "obvious"
-      ? IconEye
-      : law === "attractive"
-        ? IconHeart
-        : law === "easy"
-          ? IconFeather
-          : IconCheckCircle;
-  return (
-    <div>
-      <div
-        className="eyebrow"
-        style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}
-      >
-        <LawIcon size={12} />
-        <span>
-          {law} · {label}
-        </span>
-      </div>
-      <p className="body-sm" style={{ color: "var(--ink-3)", fontSize: 11, margin: "4px 0 6px" }}>
-        {helper}
-      </p>
-      {children}
-    </div>
-  );
-}
-
 function BadHabitsSection() {
   const util = trpc.useUtils();
-  const list = trpc.badHabits.list.useQuery(undefined, { staleTime: 10_000 });
+  const [tab, setTab] = useState<"active" | "archived">("active");
+  const active = trpc.badHabits.list.useQuery({ status: "active" }, { staleTime: 10_000 });
+  const archived = trpc.badHabits.list.useQuery({ status: "archived" }, { staleTime: 10_000 });
+  const invalidate = () => {
+    util.badHabits.list.invalidate();
+  };
   const create = trpc.badHabits.create.useMutation({
     onSuccess: () => {
-      util.badHabits.list.invalidate();
+      invalidate();
       setShowAdd(false);
       setName("");
     },
   });
-  const update = trpc.badHabits.update.useMutation({
-    onSuccess: () => util.badHabits.list.invalidate(),
-  });
-  const archive = trpc.badHabits.archive.useMutation({
-    onSuccess: () => util.badHabits.list.invalidate(),
-  });
+  const update = trpc.badHabits.update.useMutation({ onSuccess: invalidate });
+  const archive = trpc.badHabits.archive.useMutation({ onSuccess: invalidate });
+  const unarchive = trpc.badHabits.unarchive.useMutation({ onSuccess: invalidate });
   const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");
 
+  const list = tab === "active" ? active.data : archived.data;
+
   return (
     <section className="mt-12">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="eyebrow" style={{ color: "var(--ink-3)" }}>
           Bad habits I'm weakening
         </div>
-        <button className="btn btn-secondary" onClick={() => setShowAdd((s) => !s)}>
-          <IconPlus /> Add bad habit
-        </button>
+        <div className="flex items-center gap-2">
+          <TabBar
+            tab={tab}
+            setTab={setTab}
+            counts={{ active: active.data?.length ?? 0, archived: archived.data?.length ?? 0 }}
+          />
+          <button className="btn btn-accent" onClick={() => setShowAdd((s) => !s)}>
+            <IconPlus /> Add bad habit
+          </button>
+        </div>
       </div>
       <p className="body-sm mt-2" style={{ color: "var(--ink-3)", fontSize: 11 }}>
         Every identity has a competing bad habit. Name it, then apply the inverse laws.
@@ -592,33 +653,69 @@ function BadHabitsSection() {
         </form>
       )}
 
-      <div className="mt-3">
-        {list.data?.map((b) => (
+      <div className="habit-grid mt-4">
+        {list?.map((b) => (
           <BadHabitCard
             key={b.id}
             b={b}
+            archived={tab === "archived"}
             onUpdate={(patch) => update.mutate({ id: b.id, ...patch })}
             onArchive={() => archive.mutate({ id: b.id })}
+            onUnarchive={() => unarchive.mutate({ id: b.id })}
           />
         ))}
-        {list.data && list.data.length === 0 && !showAdd && (
-          <div className="mt-3">
-            <EmptyState
-              label="Nothing named yet"
-              title="Every identity has a competing bad habit."
-              body="What's the one that steals from your 5-to-9 hours?"
-            />
-          </div>
-        )}
       </div>
+      {list && list.length === 0 && !showAdd && tab === "active" && (
+        <div className="mt-3">
+          <EmptyState
+            label="Nothing named yet"
+            title="Every identity has a competing bad habit."
+            body="What's the one that steals from your 5-to-9 hours?"
+          />
+        </div>
+      )}
+      {list && list.length === 0 && tab === "archived" && (
+        <p className="body-sm mt-4" style={{ color: "var(--ink-3)" }}>
+          No archived bad habits.
+        </p>
+      )}
     </section>
+  );
+}
+
+function TabBar({
+  tab,
+  setTab,
+  counts,
+}: {
+  tab: "active" | "archived";
+  setTab: (t: "active" | "archived") => void;
+  counts: { active: number; archived: number };
+}) {
+  return (
+    <div className="tab-bar">
+      <button
+        className={"tab" + (tab === "active" ? " active" : "")}
+        onClick={() => setTab("active")}
+      >
+        Active<span className="count">{counts.active}</span>
+      </button>
+      <button
+        className={"tab" + (tab === "archived" ? " active" : "")}
+        onClick={() => setTab("archived")}
+      >
+        Archived<span className="count">{counts.archived}</span>
+      </button>
+    </div>
   );
 }
 
 function BadHabitCard({
   b,
+  archived,
   onUpdate,
   onArchive,
+  onUnarchive,
 }: {
   b: {
     id: string;
@@ -629,124 +726,226 @@ function BadHabitCard({
     difficultAction: string | null;
     unsatisfyingConsequence: string | null;
   };
+  archived: boolean;
   onUpdate: (patch: {
     name?: string;
+    description?: string | null;
     invisibleAction?: string | null;
     unattractiveReframe?: string | null;
     difficultAction?: string | null;
     unsatisfyingConsequence?: string | null;
   }) => void;
   onArchive: () => void;
+  onUnarchive: () => void;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(b.name);
+  const [desc, setDesc] = useState(b.description ?? "");
   const [invisible, setInvisible] = useState(b.invisibleAction ?? "");
   const [unattractive, setUnattractive] = useState(b.unattractiveReframe ?? "");
   const [difficult, setDifficult] = useState(b.difficultAction ?? "");
   const [unsatisfying, setUnsatisfying] = useState(b.unsatisfyingConsequence ?? "");
-  const [name, setName] = useState(b.name);
+
+  function save() {
+    onUpdate({
+      name: name.trim(),
+      description: desc.trim() || null,
+      invisibleAction: invisible.trim() || null,
+      unattractiveReframe: unattractive.trim() || null,
+      difficultAction: difficult.trim() || null,
+      unsatisfyingConsequence: unsatisfying.trim() || null,
+    });
+    setEditing(false);
+  }
 
   return (
     <div
-      className="card"
+      className="card kebab-host"
       style={{
-        marginBottom: 10,
-        padding: 14,
-        borderLeft: "3px solid var(--amber)",
+        padding: 20,
+        paddingRight: 44,
+        borderLeft: "3px solid var(--red)",
+        opacity: archived ? 0.65 : 1,
       }}
     >
-      <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 8 }}>
-        <input
-          className="input"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={() => {
-            if (name.trim() && name !== b.name) onUpdate({ name: name.trim() });
-          }}
-          style={{ flex: 1, fontWeight: 500 }}
+      {!editing && (
+        <KebabMenu
+          actions={
+            archived
+              ? [{ label: "Restore", tone: "teal", onClick: onUnarchive }]
+              : [
+                  { label: "Edit", onClick: () => setEditing(true) },
+                  {
+                    label: "Archive",
+                    tone: "red",
+                    onClick: () => {
+                      if (confirm(`Archive "${b.name}"?`)) onArchive();
+                    },
+                  },
+                ]
+          }
         />
-        <button
-          className="btn btn-ghost"
-          style={{ fontSize: 11, color: "var(--red)" }}
-          onClick={() => {
-            if (confirm(`Archive "${b.name}"?`)) onArchive();
-          }}
-        >
-          Archive
-        </button>
+      )}
+      <div className="habit-card-head">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {editing ? (
+            <input
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={{ fontWeight: 500 }}
+            />
+          ) : (
+            <div className="title red">{b.name}</div>
+          )}
+          {editing ? (
+            <input
+              className="input"
+              placeholder="Competes with… / context"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              style={{ marginTop: 8 }}
+            />
+          ) : (
+            b.description && <div className="sub">{b.description}</div>
+          )}
+        </div>
+        {editing && (
+          <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+            <button
+              className="btn btn-primary"
+              style={{ fontSize: 12, padding: "6px 12px" }}
+              onClick={save}
+            >
+              Save
+            </button>
+            <button
+              className="btn btn-ghost"
+              style={{ fontSize: 11 }}
+              onClick={() => {
+                setName(b.name);
+                setDesc(b.description ?? "");
+                setInvisible(b.invisibleAction ?? "");
+                setUnattractive(b.unattractiveReframe ?? "");
+                setDifficult(b.difficultAction ?? "");
+                setUnsatisfying(b.unsatisfyingConsequence ?? "");
+                setEditing(false);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
-      <InverseRow
-        icon={<IconEye size={12} />}
-        law="Invisible"
-        helper="How I removed the cue"
-        value={invisible}
-        onChange={setInvisible}
-        onBlur={() => onUpdate({ invisibleAction: invisible.trim() || null })}
-      />
-      <InverseRow
-        icon={<IconHeart size={12} />}
-        law="Unattractive"
-        helper="The cost I remind myself of"
-        value={unattractive}
-        onChange={setUnattractive}
-        onBlur={() => onUpdate({ unattractiveReframe: unattractive.trim() || null })}
-      />
-      <InverseRow
-        icon={<IconFeather size={12} />}
-        law="Difficult"
-        helper="The friction I added"
-        value={difficult}
-        onChange={setDifficult}
-        onBlur={() => onUpdate({ difficultAction: difficult.trim() || null })}
-      />
-      <InverseRow
-        icon={<IconCheckCircle size={12} />}
-        law="Unsatisfying"
-        helper="The commitment device"
-        value={unsatisfying}
-        onChange={setUnsatisfying}
-        onBlur={() => onUpdate({ unsatisfyingConsequence: unsatisfying.trim() || null })}
-      />
+
+      <div className="law-grid">
+        {editing ? (
+          <>
+            <LawEditRow
+              icon={<IconEye size={13} />}
+              law="Invisible"
+              helper="How I removed the cue"
+              value={invisible}
+              onChange={setInvisible}
+            />
+            <LawEditRow
+              icon={<IconHeart size={13} />}
+              law="Unattractive"
+              helper="The cost I remind myself of"
+              value={unattractive}
+              onChange={setUnattractive}
+            />
+            <LawEditRow
+              icon={<IconFeather size={13} />}
+              law="Difficult"
+              helper="The friction I added"
+              value={difficult}
+              onChange={setDifficult}
+            />
+            <LawEditRow
+              icon={<IconCheckCircle size={13} />}
+              law="Unsatisfying"
+              helper="The commitment device"
+              value={unsatisfying}
+              onChange={setUnsatisfying}
+            />
+          </>
+        ) : (
+          <>
+            <LawDisplayRow icon={<IconEye size={13} />} law="Invisible" value={b.invisibleAction} />
+            <LawDisplayRow
+              icon={<IconHeart size={13} />}
+              law="Unattractive"
+              value={b.unattractiveReframe}
+            />
+            <LawDisplayRow
+              icon={<IconFeather size={13} />}
+              law="Difficult"
+              value={b.difficultAction}
+            />
+            <LawDisplayRow
+              icon={<IconCheckCircle size={13} />}
+              law="Unsatisfying"
+              value={b.unsatisfyingConsequence}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
-function InverseRow({
+function LawDisplayRow({
+  icon,
+  law,
+  value,
+}: {
+  icon: React.ReactNode;
+  law: string;
+  value: string | null;
+}) {
+  return (
+    <div className="law-row">
+      <div className="law-k">
+        {icon}
+        <span>{law}</span>
+      </div>
+      <div className={"law-v" + (value ? "" : " empty")}>{value || "—"}</div>
+    </div>
+  );
+}
+
+function LawEditRow({
   icon,
   law,
   helper,
   value,
   onChange,
-  onBlur,
 }: {
   icon: React.ReactNode;
   law: string;
   helper: string;
   value: string;
   onChange: (v: string) => void;
-  onBlur: () => void;
 }) {
   return (
-    <div style={{ marginTop: 6 }}>
-      <div
-        className="eyebrow"
-        style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, opacity: 0.8 }}
-      >
+    <div className="law-row">
+      <div className="law-k" title={helper}>
         {icon}
-        <span>
-          {law} — {helper}
-        </span>
+        <span>{law}</span>
       </div>
       <input
         className="input"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur}
-        style={{ marginTop: 4 }}
+        placeholder={helper}
+        style={{ padding: "8px 10px", fontSize: 13.5 }}
       />
     </div>
   );
 }
 
-function GroupsSection() {
+function GroupsSection({ sidebar = false }: { sidebar?: boolean }) {
   const util = trpc.useUtils();
   const list = trpc.groups.list.useQuery(undefined, { staleTime: 30_000 });
   const create = trpc.groups.create.useMutation({
@@ -777,11 +976,15 @@ function GroupsSection() {
   }
 
   return (
-    <section className="mt-12">
-      <div className="flex items-center justify-between">
-        <div className="eyebrow">Groups</div>
-        <button className="btn btn-secondary" onClick={() => setShowAdd((s) => !s)}>
-          <IconPlus /> Add group
+    <section className={sidebar ? "" : "mt-12"}>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="eyebrow">{sidebar ? "Groups · Community" : "Groups"}</div>
+        <button
+          className="btn btn-accent"
+          style={sidebar ? { fontSize: 12 } : undefined}
+          onClick={() => setShowAdd((s) => !s)}
+        >
+          <IconPlus /> Add
         </button>
       </div>
       <p className="body-sm mt-2" style={{ color: "var(--ink-3)", fontSize: 11 }}>
@@ -849,7 +1052,7 @@ function GroupsSection() {
         </form>
       )}
 
-      <div className="mt-3">
+      <div className={"habit-grid mt-3" + (sidebar ? " stack" : " wide-3")}>
         {list.data?.map((g) => (
           <GroupRow
             key={g.id}
@@ -860,16 +1063,16 @@ function GroupsSection() {
             }}
           />
         ))}
-        {list.data && list.data.length === 0 && !showAdd && (
-          <div className="mt-3">
-            <EmptyState
-              label="No tribe yet"
-              title="You don't belong to a community for this identity yet."
-              body="The fastest way to become a reader / writer / trader is to be around people who already are."
-            />
-          </div>
-        )}
       </div>
+      {list.data && list.data.length === 0 && !showAdd && (
+        <div className="mt-3">
+          <EmptyState
+            label="No tribe yet"
+            title="You don't belong to a community for this identity yet."
+            body="The fastest way to become a reader / writer / trader is to be around people who already are."
+          />
+        </div>
+      )}
     </section>
   );
 }
@@ -902,25 +1105,27 @@ function GroupRow({
 
   if (editing) {
     return (
-      <div className="card" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8 }}>
+      <div className="card" style={{ padding: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
         <input
           className="input"
           value={ident}
           onChange={(e) => setIdent(e.target.value)}
-          style={{ flex: "1 1 260px" }}
+          placeholder="Identity it supports"
+          style={{ flex: "1 1 100%" }}
         />
         <input
           className="input"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ flex: "1 1 220px" }}
+          placeholder="Group name"
+          style={{ flex: "1 1 100%" }}
         />
         <input
           className="input"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="URL or contact"
-          style={{ flex: "1 1 220px" }}
+          style={{ flex: "1 1 100%" }}
         />
         <input
           className="input"
@@ -952,36 +1157,52 @@ function GroupRow({
 
   return (
     <div
-      className="card"
-      style={{ display: "flex", gap: 10, alignItems: "flex-start", marginTop: 8 }}
+      className="card kebab-host"
+      style={{
+        padding: 14,
+        paddingRight: 44,
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+      }}
     >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 500 }}>{g.name}</div>
-        <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 2 }}>
-          Supports: {g.identityItSupports}
+      <KebabMenu
+        actions={[
+          { label: "Edit", onClick: () => setEditing(true) },
+          { label: "Delete", tone: "red", onClick: onDelete },
+        ]}
+      />
+      <div style={{ minWidth: 0 }}>
+        <div className="eyebrow" style={{ fontSize: 10, color: "var(--teal)", marginBottom: 2 }}>
+          {g.identityItSupports}
+        </div>
+        <div className="title-sm" style={{ fontSize: 17 }}>
+          {g.name}
         </div>
         {g.urlOrContact && (
-          <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>{g.urlOrContact}</div>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--ink-3)",
+              marginTop: 4,
+              fontFamily: "Geist Mono, monospace",
+              wordBreak: "break-all",
+            }}
+          >
+            {g.urlOrContact}
+          </div>
         )}
         {g.note && (
-          <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>{g.note}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 6, lineHeight: 1.4 }}>
+            {g.note}
+          </div>
         )}
       </div>
-      <button className="btn btn-ghost" style={{ fontSize: 11 }} onClick={() => setEditing(true)}>
-        Edit
-      </button>
-      <button
-        className="btn btn-ghost"
-        style={{ fontSize: 11, color: "var(--red)" }}
-        onClick={onDelete}
-      >
-        Delete
-      </button>
     </div>
   );
 }
 
-function RulesSection() {
+function RulesSection({ sidebar = false }: { sidebar?: boolean }) {
   const util = trpc.useUtils();
   const list = trpc.rules.list.useQuery(undefined, { staleTime: 10_000 });
   const create = trpc.rules.create.useMutation({
@@ -1009,11 +1230,15 @@ function RulesSection() {
   }
 
   return (
-    <section className="mt-8">
-      <div className="flex items-center justify-between">
+    <section className={sidebar ? "" : "mt-8"}>
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="eyebrow">Rules</div>
-        <button className="btn btn-secondary" onClick={() => setShowAdd((s) => !s)}>
-          <IconPlus /> Add rule
+        <button
+          className="btn btn-accent"
+          style={sidebar ? { fontSize: 12 } : undefined}
+          onClick={() => setShowAdd((s) => !s)}
+        >
+          <IconPlus /> Add
         </button>
       </div>
       <p className="body-sm mt-2" style={{ color: "var(--ink-3)", fontSize: 11 }}>
@@ -1095,7 +1320,7 @@ function RulesSection() {
         </form>
       )}
 
-      <div className="mt-3">
+      <div className={"habit-grid mt-3" + (sidebar ? " stack" : " wide-3")}>
         {list.data?.map((r) =>
           editingId === r.id ? (
             <RuleEditRow
@@ -1117,12 +1342,12 @@ function RulesSection() {
             />
           ),
         )}
-        {list.data && list.data.length === 0 && !showAdd && (
-          <p className="body-sm" style={{ color: "var(--ink-3)", marginTop: 6 }}>
-            No extra rules yet.
-          </p>
-        )}
       </div>
+      {list.data && list.data.length === 0 && !showAdd && (
+        <p className="body-sm" style={{ color: "var(--ink-3)", marginTop: 6 }}>
+          No extra rules yet.
+        </p>
+      )}
     </section>
   );
 }
@@ -1146,31 +1371,35 @@ function RuleRow({
 }) {
   return (
     <div
-      className="card"
-      style={{ display: "flex", gap: 10, alignItems: "flex-start", marginTop: 8 }}
+      className="card kebab-host"
+      style={{
+        padding: 14,
+        paddingRight: 44,
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+      }}
     >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, color: "var(--ink)" }}>{r.text}</div>
+      <KebabMenu
+        actions={[
+          { label: "Edit", onClick: onEdit },
+          { label: "Delete", tone: "red", onClick: onDelete },
+        ]}
+      />
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 14, color: "var(--ink)", lineHeight: 1.35 }}>{r.text}</div>
         {r.description && (
-          <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 4 }}>{r.description}</div>
-        )}
-        {(r.cadence || r.scheduledTime) && (
-          <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-            {r.cadence && <span className="chip">{r.cadence}</span>}
-            {r.scheduledTime && <span className="chip">{r.scheduledTime}</span>}
+          <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 4, lineHeight: 1.4 }}>
+            {r.description}
           </div>
         )}
       </div>
-      <button className="btn btn-ghost" style={{ fontSize: 11 }} onClick={onEdit}>
-        Edit
-      </button>
-      <button
-        className="btn btn-ghost"
-        style={{ fontSize: 11, color: "var(--red)" }}
-        onClick={onDelete}
-      >
-        Delete
-      </button>
+      {(r.cadence || r.scheduledTime) && (
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          {r.cadence && <span className="chip">{r.cadence}</span>}
+          {r.scheduledTime && <span className="chip">{r.scheduledTime}</span>}
+        </div>
+      )}
     </div>
   );
 }
@@ -1195,7 +1424,7 @@ function RuleEditRow({
   const [time, setTime] = useState(r.scheduledTime ?? "");
 
   return (
-    <div className="card" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8 }}>
+    <div className="card" style={{ padding: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
       <input
         className="input"
         value={title}
@@ -1214,7 +1443,7 @@ function RuleEditRow({
         className="input"
         value={cad}
         onChange={(e) => setCad(e.target.value as Cadence | "")}
-        style={{ width: 180 }}
+        style={{ flex: "1 1 120px" }}
       >
         <option value="">No cadence</option>
         {CADENCES.map((c) => (
@@ -1228,7 +1457,7 @@ function RuleEditRow({
         type="time"
         value={time}
         onChange={(e) => setTime(e.target.value)}
-        style={{ width: 130 }}
+        style={{ flex: "1 1 100px" }}
       />
       <button
         className="btn btn-primary"
@@ -1287,24 +1516,24 @@ function BacklogItem({
 
   if (editing) {
     return (
-      <div className="backlog-row" style={{ flexWrap: "wrap", gap: 8 }}>
+      <div className="card" style={{ padding: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
         <input
           className="input"
           value={statement}
           onChange={(e) => setStatement(e.target.value)}
-          style={{ flex: "1 1 240px" }}
+          style={{ flex: "1 1 100%" }}
         />
         <input
           className="input"
           value={action}
           onChange={(e) => setAction(e.target.value)}
-          style={{ flex: "1 1 240px" }}
+          style={{ flex: "1 1 100%" }}
         />
         <select
           className="input"
           value={cadence}
           onChange={(e) => setCadence(e.target.value as Cadence)}
-          style={{ width: 150 }}
+          style={{ flex: "1 1 130px" }}
         >
           {CADENCES.map((c) => (
             <option key={c.key} value={c.key}>
@@ -1317,7 +1546,7 @@ function BacklogItem({
           type="time"
           value={scheduledTime}
           onChange={(e) => setScheduledTime(e.target.value)}
-          style={{ width: 120 }}
+          style={{ flex: "1 1 100px" }}
         />
         <button
           className="btn btn-primary"
@@ -1350,35 +1579,44 @@ function BacklogItem({
   }
 
   return (
-    <div className="backlog-row">
-      <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-        <div className="stmt" style={{ fontSize: 16 }}>
+    <div
+      className="card kebab-host"
+      style={{
+        padding: 14,
+        paddingRight: 44,
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+      }}
+    >
+      <KebabMenu
+        actions={[
+          { label: "Edit", onClick: () => setEditing(true) },
+          { label: "Delete", tone: "red", onClick: onDelete },
+        ]}
+      />
+      <div style={{ minWidth: 0 }}>
+        <div className="stmt" style={{ fontSize: 15 }}>
           {b.statement}
         </div>
-        <div className="act" style={{ fontSize: 12, color: "var(--ink-3)" }}>
+        <div className="act" style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>
           {b.action}
         </div>
       </div>
-      <span className="chip">{b.cadence}</span>
-      {b.eligible ? (
-        <button className="btn btn-primary" onClick={onPromote} disabled={pending}>
-          Unlock
-        </button>
-      ) : (
-        <span className="lock" title={b.reason ?? ""}>
-          <IconLock size={10} /> {b.reason ? b.reason : "Locked"}
-        </span>
-      )}
-      <button className="btn btn-ghost" style={{ fontSize: 11 }} onClick={() => setEditing(true)}>
-        Edit
-      </button>
-      <button
-        className="btn btn-ghost"
-        style={{ fontSize: 11, color: "var(--red)" }}
-        onClick={onDelete}
-      >
-        Delete
-      </button>
+      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+        <span className="chip">{b.cadence}</span>
+        {b.scheduledTime && <span className="chip">{b.scheduledTime}</span>}
+        <div style={{ flex: 1 }} />
+        {b.eligible ? (
+          <button className="btn btn-primary" onClick={onPromote} disabled={pending}>
+            Unlock
+          </button>
+        ) : (
+          <span className="lock" title={b.reason ?? ""}>
+            <IconLock size={10} /> {b.reason ? b.reason : "Locked"}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

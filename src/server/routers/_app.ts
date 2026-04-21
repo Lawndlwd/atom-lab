@@ -5,7 +5,6 @@ import { identityRouter } from "./identity";
 import { voteRouter } from "./vote";
 import { reviewRouter } from "./review";
 import { journalRouter } from "./journal";
-import { blocksuiteRouter } from "./blocksuite";
 import { habitsRouter } from "./habits";
 import { pushRouter } from "./push";
 import { rulesRouter } from "./rules";
@@ -21,7 +20,6 @@ export const appRouter = router({
   vote: voteRouter,
   review: reviewRouter,
   journal: journalRouter,
-  blocksuite: blocksuiteRouter,
   habits: habitsRouter,
   push: pushRouter,
   rules: rulesRouter,

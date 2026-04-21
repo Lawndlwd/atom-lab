@@ -3,7 +3,7 @@ import { importInput } from "../../shared/schema";
 
 export const dataRouter = router({
   import: onboardedProcedure.input(importInput).mutation(async ({ ctx, input }) => {
-    const counts = { identities: 0, backlog: 0, journalTypes: 0, rules: 0 };
+    const counts = { identities: 0, backlog: 0, journalTypes: 0, rules: 0, badHabits: 0 };
 
     await ctx.db.$transaction(async (tx) => {
       if (input.identities?.length) {
@@ -14,6 +14,10 @@ export const dataRouter = router({
             action: i.action,
             scheduledTime: i.scheduledTime,
             cadence: i.cadence,
+            cueLocation: i.cueLocation ?? null,
+            stackAfter: i.stackAfter ?? null,
+            mindsetReframe: i.mindsetReframe ?? null,
+            immediateReward: i.immediateReward ?? null,
           })),
         });
         counts.identities = input.identities.length;
@@ -43,6 +47,7 @@ export const dataRouter = router({
               userId: ctx.user.id,
               slug: t.slug,
               label: t.label,
+              color: t.color ?? "#7cb5a5",
               order: t.order ?? i,
             })),
           });
@@ -62,6 +67,20 @@ export const dataRouter = router({
           })),
         });
         counts.rules = input.rules.length;
+      }
+      if (input.badHabits?.length) {
+        await tx.badHabit.createMany({
+          data: input.badHabits.map((b) => ({
+            userId: ctx.user.id,
+            name: b.name,
+            description: b.description ?? null,
+            invisibleAction: b.invisibleAction ?? null,
+            unattractiveReframe: b.unattractiveReframe ?? null,
+            difficultAction: b.difficultAction ?? null,
+            unsatisfyingConsequence: b.unsatisfyingConsequence ?? null,
+          })),
+        });
+        counts.badHabits = input.badHabits.length;
       }
     });
 

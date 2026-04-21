@@ -14,9 +14,9 @@ export function TabBar() {
     <nav
       className="fixed bottom-0 left-0 right-0 lg:hidden"
       style={{
-        background: "rgba(13,11,9,0.82)",
-        backdropFilter: "blur(16px)",
-        borderTop: "0.5px solid var(--line-2)",
+        background: "color-mix(in srgb, var(--bg) 42%, transparent)",
+        backdropFilter: "blur(28px) saturate(160%)",
+        WebkitBackdropFilter: "blur(28px) saturate(160%)",
         paddingBottom: "env(safe-area-inset-bottom)",
         zIndex: 50,
       }}

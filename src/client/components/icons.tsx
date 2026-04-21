@@ -29,7 +29,7 @@ export const IconHome = ({ size = 18, ...p }: S) => (
 );
 
 // Week → streak bars across 7 days, varied heights (real "bar chart" silhouette)
-export const IconGrid = ({ size = 18, ...p }: S) => (
+export const IconGrid = ({ size = 18 }: S) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" stroke="none">
     <rect x="2.5" y="14" width="2.2" height="6" rx="1.1" />
     <rect x="5.7" y="10" width="2.2" height="10" rx="1.1" />
@@ -42,7 +42,7 @@ export const IconGrid = ({ size = 18, ...p }: S) => (
 );
 
 // Review → 5 stacked progress pips, three filled (the answered count)
-export const IconReview = ({ size = 18, ...p }: S) => (
+export const IconReview = ({ size = 18 }: S) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" stroke="none">
     <rect x="3" y="4" width="18" height="2" rx="1" />
     <rect x="3" y="8.5" width="18" height="2" rx="1" />
@@ -87,15 +87,22 @@ export const IconLock = ({ size = 14, ...p }: S) => (
   </svg>
 );
 
-export const IconChev = ({ size = 12, ...p }: S) => (
-  <svg {...base(size, 2)} {...p}>
-    <path d="m9 6 6 6-6 6" />
-  </svg>
-);
-
 export const IconArrow = ({ size = 14, dir = "r", ...p }: S & { dir?: "l" | "r" }) => (
   <svg {...base(size, 1.75)} {...p}>
     <path d={dir === "r" ? "M5 12h14m-6-6 6 6-6 6" : "M19 12H5m6-6-6 6 6 6"} />
+  </svg>
+);
+
+export const IconCaret = ({ size = 10, open = false, ...p }: S & { open?: boolean }) => (
+  <svg
+    {...base(size, 2)}
+    style={{
+      transform: open ? "rotate(180deg)" : "none",
+      transition: "transform 140ms ease",
+    }}
+    {...p}
+  >
+    <path d="m6 9 6 6 6-6" />
   </svg>
 );
 
@@ -181,5 +188,14 @@ export const IconMoon = ({ size = 16, ...p }: S) => (
   <svg {...base(size, 1.6)} {...p}>
     <path d="M20 13.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 9.5z" />
     <circle cx="17" cy="6" r="0.8" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+// Three vertical dots
+export const IconMore = ({ size = 16, ...p }: S) => (
+  <svg {...base(size, 1.8)} {...p}>
+    <circle cx="12" cy="5" r="1.4" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="19" r="1.4" fill="currentColor" stroke="none" />
   </svg>
 );

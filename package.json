@@ -24,15 +24,14 @@
     "vapid": "tsx scripts/gen-vapid.ts"
   },
   "dependencies": {
-    "@blocksuite/blocks": "0.15.0-canary-202406291027-8aed732",
-    "@blocksuite/presets": "0.15.0-canary-202406291027-8aed732",
-    "@blocksuite/store": "0.15.0-canary-202406291027-8aed732",
-    "@blocksuite/sync": "0.15.0-canary-202406291027-8aed732",
     "@fontsource/fraunces": "^5.1.0",
     "@fontsource/geist-mono": "^5.1.0",
     "@fontsource/inter": "^5.1.0",
     "@hono/node-server": "^1.13.7",
     "@hono/trpc-server": "^0.3.4",
+    "@milkdown/crepe": "^7.5.0",
+    "@milkdown/kit": "^7.5.0",
+    "@milkdown/react": "^7.5.0",
     "@node-rs/argon2": "^2.0.2",
     "@prisma/adapter-better-sqlite3": "^7.7.0",
     "@prisma/client": "7.7.0",
@@ -41,7 +40,6 @@
     "@trpc/react-query": "^11.0.0-rc.648",
     "@trpc/server": "^11.0.0-rc.648",
     "better-sqlite3": "^11.7.0",
-    "clsx": "^2.1.1",
     "cookie": "^1.0.2",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
@@ -54,7 +52,6 @@
     "react-router-dom": "^6.28.0",
     "superjson": "^2.2.2",
     "web-push": "^3.6.7",
-    "y-indexeddb": "9.0.12",
     "zod": "^3.23.8"
   },
   "devDependencies": {

@@ -1,10 +1,12 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { trpc } from "../../trpc";
 import { Ring } from "../../components/Ring";
-import { IconCheck } from "../../components/icons";
+import { IconCaret, IconCheck } from "../../components/icons";
+import { stripLead } from "../../../shared/text";
 import { useTodayDate, formatScheduledTime } from "../../hooks/useTodayDate";
 import { EmptyState } from "../../components/EmptyState";
+import { SectionDivider } from "../../components/SectionDivider";
 
 type Row = {
   id: string;
@@ -71,7 +73,7 @@ export default function Today() {
   const cleanCount = badRows.filter((b) => b.weakened).length;
 
   return (
-    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1180px] mx-auto">
+    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1440px] mx-auto">
       <header>
         <div className="eyebrow">
           <span className="hidden lg:inline">{prettyLong}</span>
@@ -109,8 +111,9 @@ export default function Today() {
         </div>
       )}
 
+      {total > 0 && <SectionDivider label="Today — in order" />}
       {total > 0 && (
-        <div className="timeline wide mt-6">
+        <div className="timeline wide">
           {rows.map((r, i) => (
             <TimelineRow
               key={r.id}
@@ -130,11 +133,9 @@ export default function Today() {
       )}
 
       {badRows.length > 0 && (
-        <section className="mt-12">
-          <div className="eyebrow" style={{ color: "var(--ink-3)" }}>
-            Bad habits I'm weakening today
-          </div>
-          <div className="mt-3">
+        <section>
+          <SectionDivider label="Bad habits — weakening today" />
+          <div>
             {badRows.map((b) => (
               <div
                 key={b.id}
@@ -164,7 +165,10 @@ export default function Today() {
                     </div>
                   )}
                 </div>
-                <span className="chip" style={{ fontSize: 10 }}>
+                <span
+                  className={"chip " + (b.weakened ? "chip-teal-fill" : "chip-amber")}
+                  style={{ fontSize: 10 }}
+                >
                   {b.weakened ? "weakened" : "open"}
                 </span>
               </div>
@@ -242,22 +246,6 @@ function TimelineRow({
   onTwoMinute: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const pressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressed = useRef(false);
-
-  function startPress() {
-    longPressed.current = false;
-    pressRef.current = setTimeout(() => {
-      longPressed.current = true;
-      setExpanded((e) => !e);
-    }, 450);
-  }
-  function endPress() {
-    if (pressRef.current) {
-      clearTimeout(pressRef.current);
-      pressRef.current = null;
-    }
-  }
 
   const displayTime = formatScheduledTime(row.scheduledTime, tz, "long");
   const cls = "tl-row" + (row.done ? " done" : "") + (isNext ? " next" : "");
@@ -275,21 +263,7 @@ function TimelineRow({
         >
           {row.done && <IconCheck size={12} />}
         </button>
-        <div
-          onMouseDown={startPress}
-          onMouseUp={endPress}
-          onMouseLeave={endPress}
-          onTouchStart={startPress}
-          onTouchEnd={endPress}
-          onContextMenu={(e) => {
-            if (hasReframe) {
-              e.preventDefault();
-              setExpanded((x) => !x);
-            }
-          }}
-          style={{ cursor: hasReframe ? "pointer" : "default" }}
-          title={hasReframe ? "Long-press for reframe" : undefined}
-        >
+        <div>
           <div className="stmt">{row.statement}</div>
           <div className="act">{row.action}</div>
           {row.partial && (
@@ -303,6 +277,17 @@ function TimelineRow({
                 My group: {groupName}
               </span>
             </div>
+          )}
+          {hasReframe && (
+            <button
+              type="button"
+              className="tl-reframe-toggle"
+              aria-expanded={expanded}
+              onClick={() => setExpanded((x) => !x)}
+            >
+              <IconCaret size={10} open={expanded} />
+              {expanded ? "Hide reframe" : "Reframe"}
+            </button>
           )}
         </div>
         <div className={"tl-streak" + (row.streak === 0 ? " low" : "")}>{row.streak}d</div>
@@ -318,7 +303,7 @@ function TimelineRow({
         >
           {row.mindsetReframe && (
             <div style={{ fontSize: 14, fontStyle: "italic", color: "var(--ink)" }}>
-              Because I get to {row.mindsetReframe}
+              Because I get to {stripLead(row.mindsetReframe, ["because i get to", "because"])}
             </div>
           )}
           {row.stackAfter && (
@@ -329,12 +314,12 @@ function TimelineRow({
                 color: "var(--ink-2)",
               }}
             >
-              After {row.stackAfter}, I do this.
+              After {stripLead(row.stackAfter, ["after"])}, I do this.
             </div>
           )}
           {row.immediateReward && (
             <div style={{ marginTop: 6, fontSize: 12, color: "var(--ink-2)" }}>
-              Then: {row.immediateReward}.
+              Then: {stripLead(row.immediateReward, ["then:", "then"])}.
             </div>
           )}
           {!row.done && (

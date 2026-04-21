@@ -43,4 +43,17 @@ export const identityRouter = router({
         data: { status: "archived", archivedAt: new Date() },
       });
     }),
+
+  unarchive: onboardedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db.identity.findFirst({
+        where: { id: input.id, userId: ctx.user.id },
+      });
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      return ctx.db.identity.update({
+        where: { id: input.id },
+        data: { status: "active", archivedAt: null },
+      });
+    }),
 });

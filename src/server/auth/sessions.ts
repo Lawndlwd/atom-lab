@@ -34,7 +34,3 @@ export async function deleteSession(id: string) {
     await db.session.delete({ where: { id } });
   } catch {}
 }
-
-export async function purgeExpired() {
-  await db.session.deleteMany({ where: { expiresAt: { lt: new Date() } } });
-}

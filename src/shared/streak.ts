@@ -1,7 +1,5 @@
-import { addDays, parse, format, differenceInCalendarDays } from "date-fns";
+import { addDays, parse, format } from "date-fns";
 import { dayOfWeekInTz, isWeekday } from "./dates";
-
-export type Cadence = "daily" | "weekdays" | "5x_week" | "weekends" | "custom";
 
 export function isScheduledOn(cadence: string, tz: string, dateStr: string): boolean {
   const dow = dayOfWeekInTz(tz, dateStr);
@@ -66,11 +64,4 @@ export function longestStreak(args: {
     }
   }
   return best;
-}
-
-export function daysAgo(fromIso: string, toIso: string): number {
-  return differenceInCalendarDays(
-    parse(toIso, "yyyy-MM-dd", new Date()),
-    parse(fromIso, "yyyy-MM-dd", new Date()),
-  );
 }

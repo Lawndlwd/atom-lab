@@ -13,13 +13,14 @@ export default function Review() {
   const [step, setStep] = useState(0);
 
   const answers: Record<string, string> = useMemo(() => {
-    if (!current.data?.review) return {};
+    const review = current.data?.review;
+    if (!review) return {};
     try {
-      return JSON.parse(current.data.review.answers);
+      return JSON.parse(review.answers);
     } catch {
       return {};
     }
-  }, [current.data?.review?.answers]);
+  }, [current.data?.review]);
 
   const locked = !!current.data?.review?.completedAt;
   const [draft, setDraft] = useState<Record<string, string>>({});
@@ -56,7 +57,7 @@ export default function Review() {
   const curQ = REVIEW_QUESTIONS[step];
 
   return (
-    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1120px] mx-auto">
+    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1440px] mx-auto">
       <header className="flex items-end justify-between gap-6 flex-wrap mb-6">
         <div>
           <div className="eyebrow">Sunday review · Week {current.data?.weekNumber ?? "—"}</div>

@@ -11,12 +11,14 @@ import {
 import { weekDays } from "../../shared/dates";
 
 export const badHabitsRouter = router({
-  list: onboardedProcedure.query(({ ctx }) =>
-    ctx.db.badHabit.findMany({
-      where: { userId: ctx.user.id, status: "active" },
-      orderBy: { createdAt: "asc" },
-    }),
-  ),
+  list: onboardedProcedure
+    .input(z.object({ status: z.enum(["active", "archived"]).optional() }).optional())
+    .query(({ ctx, input }) =>
+      ctx.db.badHabit.findMany({
+        where: { userId: ctx.user.id, status: input?.status ?? "active" },
+        orderBy: { createdAt: "asc" },
+      }),
+    ),
 
   listByDate: onboardedProcedure.input(badHabitListByDateInput).query(async ({ ctx, input }) => {
     const bh = await ctx.db.badHabit.findMany({
@@ -62,6 +64,19 @@ export const badHabitsRouter = router({
       return ctx.db.badHabit.update({
         where: { id: input.id },
         data: { status: "archived", archivedAt: new Date() },
+      });
+    }),
+
+  unarchive: onboardedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db.badHabit.findFirst({
+        where: { id: input.id, userId: ctx.user.id },
+      });
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      return ctx.db.badHabit.update({
+        where: { id: input.id },
+        data: { status: "active", archivedAt: null },
       });
     }),
 

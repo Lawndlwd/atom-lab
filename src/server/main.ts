@@ -29,13 +29,16 @@ app.use(
       } catch {
         /* ignore */
       }
-      return out.replace(/([?&])(\w+)=(\{[\s\S]*?\}|\[[\s\S]*?\])(?=&|$|\s)/g, (_m, sep, key, val) => {
-        try {
-          return `${sep}${key}=\n${JSON.stringify(JSON.parse(val), null, 2)}`;
-        } catch {
-          return `${sep}${key}=${val}`;
-        }
-      });
+      return out.replace(
+        /([?&])(\w+)=(\{[\s\S]*?\}|\[[\s\S]*?\])(?=&|$|\s)/g,
+        (_m, sep, key, val) => {
+          try {
+            return `${sep}${key}=\n${JSON.stringify(JSON.parse(val), null, 2)}`;
+          } catch {
+            return `${sep}${key}=${val}`;
+          }
+        },
+      );
     };
     console.log(pretty(msg), ...rest.map(pretty));
   }),

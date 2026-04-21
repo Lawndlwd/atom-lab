@@ -1,73 +1,45 @@
-import { useEffect, useRef, useState } from "react";
-import { trpc } from "../../trpc";
-import { useAuth } from "../../providers/auth";
-import type { EditorBundle } from "./bs";
+import { useRef } from "react";
+import { Crepe } from "@milkdown/crepe";
+import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
+import { listener, listenerCtx } from "@milkdown/kit/plugin/listener";
 
-type Props = { entryId: string; title: string };
+import "@milkdown/crepe/theme/common/style.css";
+import "@milkdown/crepe/theme/frame.css";
 
-export function JournalEditor({ entryId, title }: Props) {
-  const { user } = useAuth();
-  const host = useRef<HTMLDivElement>(null);
-  const bundle = useRef<EditorBundle | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const util = trpc.useUtils();
-  const saveSnapshot = trpc.blocksuite.saveSnapshot.useMutation();
+type Props = {
+  value: string;
+  onChange: (markdown: string) => void;
+};
 
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { initJournalEditor } = await import("./bs");
-        const b = await initJournalEditor({
-          userId: user.id,
-          entryId,
-          title,
-          client: {
-            getSnapshot: async (docId) => {
-              const r = await util.blocksuite.getSnapshot.fetch({ docId });
-              return r.state ? new Uint8Array(r.state) : null;
-            },
-            saveSnapshot: async (docId, state) => {
-              await saveSnapshot.mutateAsync({
-                docId,
-                state: Array.from(state),
-              });
-            },
-          },
-        });
-        if (cancelled) {
-          b.destroy();
+function CrepeEditor({ value, onChange }: Props) {
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const initialRef = useRef(value);
+  const skipFirstRef = useRef(true);
+
+  useEditor((root) => {
+    const crepe = new Crepe({ root, defaultValue: initialRef.current ?? "" });
+    crepe.editor.config((ctx) => {
+      ctx.get(listenerCtx).markdownUpdated((_ctx, markdown, prev) => {
+        if (skipFirstRef.current) {
+          skipFirstRef.current = false;
           return;
         }
-        bundle.current = b;
-        if (host.current) host.current.appendChild(b.editor);
-        setMounted(true);
-      } catch (e) {
-        setErr(e instanceof Error ? e.message : String(e));
-      }
-    })();
-    return () => {
-      cancelled = true;
-      bundle.current?.destroy();
-      bundle.current = null;
-    };
-  }, [user, entryId]);
+        if (markdown === prev) return;
+        onChangeRef.current(markdown);
+      });
+    });
+    crepe.editor.use(listener);
+    return crepe;
+  }, []);
 
+  return <Milkdown />;
+}
+
+export default function JournalEditor(props: Props) {
   return (
-    <div className="journal-editor-wrap">
-      {err && (
-        <div className="body-sm" style={{ color: "var(--red)" }}>
-          Editor failed to load: {err}
-        </div>
-      )}
-      {!mounted && !err && (
-        <div className="body-sm" style={{ color: "var(--ink-3)" }}>
-          Loading editor…
-        </div>
-      )}
-      <div ref={host} className="journal-editor" />
-    </div>
+    <MilkdownProvider>
+      <CrepeEditor {...props} />
+    </MilkdownProvider>
   );
 }

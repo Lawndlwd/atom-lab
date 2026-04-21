@@ -26,6 +26,10 @@ export const onboardingRouter = router({
           action: i.action,
           scheduledTime: i.scheduledTime,
           cadence: i.cadence,
+          cueLocation: i.cueLocation ?? null,
+          stackAfter: i.stackAfter ?? null,
+          mindsetReframe: i.mindsetReframe ?? null,
+          immediateReward: i.immediateReward ?? null,
         })),
       });
 
@@ -34,6 +38,7 @@ export const onboardingRouter = router({
           userId: ctx.user.id,
           slug: t.slug,
           label: t.label,
+          color: t.color ?? "#7cb5a5",
           order: t.order ?? 0,
         })),
       });
@@ -65,7 +70,6 @@ export const onboardingRouter = router({
         await tx.rule.deleteMany({ where: { userId: ctx.user.id } });
         await tx.review.deleteMany({ where: { userId: ctx.user.id } });
         await tx.journalType.deleteMany({ where: { userId: ctx.user.id } });
-        await tx.blockSuiteDoc.deleteMany({ where: { userId: ctx.user.id } });
         await tx.config.deleteMany({ where: { userId: ctx.user.id } });
         await tx.user.update({
           where: { id: ctx.user.id },

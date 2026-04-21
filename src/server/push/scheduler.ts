@@ -44,7 +44,7 @@ function buildIntentionTitle(
   return loc ? `${base} in ${loc}.` : `${base}.`;
 }
 
-export async function runTick(now: Date) {
+async function runTick(now: Date) {
   const users = await db.user.findMany({
     where: { onboardedAt: { not: null } },
   });

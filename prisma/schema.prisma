@@ -24,7 +24,6 @@ model User {
   habitBacklog   HabitBacklog[]
   config         Config?
   pushSubs       PushSubscription[]
-  bsDocs         BlockSuiteDoc[]
   pushLogs       PushLog[]
   rules          Rule[]
   badHabits      BadHabit[]
@@ -100,6 +99,7 @@ model JournalType {
   userId String
   slug   String
   label  String
+  color  String @default("#7cb5a5")
   order  Int    @default(0)
 
   user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -113,37 +113,16 @@ model JournalEntry {
   userId    String
   typeId    String
   title     String
+  content   String   @default("")
+  date      String   @default("")
   status    String   @default("idea")
-  bsDocId   String   @unique
   createdAt DateTime @default(now())
 
-  type JournalType   @relation(fields: [typeId], references: [id], onDelete: Cascade)
-  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  doc  BlockSuiteDoc @relation(fields: [bsDocId], references: [id], onDelete: Cascade)
+  type JournalType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, typeId])
-}
-
-model BlockSuiteDoc {
-  id        String   @id
-  userId    String
-  state     Bytes
-  updatedAt DateTime @updatedAt
-
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  snapshots BlockSuiteSnapshot[]
-  entry     JournalEntry?
-}
-
-model BlockSuiteSnapshot {
-  id        String   @id @default(cuid())
-  docId     String
-  state     Bytes
-  createdAt DateTime @default(now())
-
-  doc BlockSuiteDoc @relation(fields: [docId], references: [id], onDelete: Cascade)
-
-  @@index([docId, createdAt])
+  @@index([userId, date])
 }
 
 model HabitBacklog {

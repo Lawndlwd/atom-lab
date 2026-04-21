@@ -16,12 +16,11 @@ export function TopNav({ userName }: Props) {
   const initial = userName?.[0]?.toUpperCase() ?? "A";
   return (
     <header
-      className="hidden lg:flex sticky top-3 z-40 mx-auto w-[min(1200px,calc(100%-24px))] items-center gap-4"
+      className="hidden lg:flex sticky top-3 z-40 mx-auto w-[min(1440px,calc(100%-24px))] items-center gap-4"
       style={{
-        background: "color-mix(in srgb, var(--bg) 62%, transparent)",
-        backdropFilter: "blur(18px) saturate(140%)",
-        WebkitBackdropFilter: "blur(18px) saturate(140%)",
-        border: "0.5px solid var(--line-2)",
+        background: "color-mix(in srgb, var(--bg) 42%, transparent)",
+        backdropFilter: "blur(32px) saturate(160%)",
+        WebkitBackdropFilter: "blur(32px) saturate(160%)",
         borderRadius: "var(--r-xl)",
         padding: "8px 14px",
         boxShadow: "0 6px 24px rgba(0,0,0,0.18)",
@@ -96,7 +95,6 @@ export function TopNav({ userName }: Props) {
         </div>
         <div style={{ lineHeight: 1.15 }}>
           <div style={{ color: "var(--ink-2)", fontSize: 12 }}>{userName ?? "Anon"}</div>
-          <div style={{ fontSize: 9, color: "var(--ink-3)" }}>Local · no sync</div>
         </div>
       </div>
     </header>

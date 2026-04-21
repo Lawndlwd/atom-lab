@@ -2,17 +2,13 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { router, onboardedProcedure } from "../trpc";
 import {
+  journalByDateInput,
   journalCreateEntryInput,
+  journalRangeInput,
   journalTypeInput,
+  journalTypeUpdateInput,
   journalUpdateEntryInput,
 } from "../../shared/schema";
-
-function docIdFor(userId: string, entryId: string) {
-  return `journal-${userId}-${entryId}`;
-}
-function rootIdFor(userId: string) {
-  return `root-${userId}`;
-}
 
 export const journalRouter = router({
   listTypes: onboardedProcedure.query(({ ctx }) =>
@@ -24,8 +20,23 @@ export const journalRouter = router({
 
   createType: onboardedProcedure.input(journalTypeInput).mutation(async ({ ctx, input }) => {
     return ctx.db.journalType.create({
-      data: { ...input, userId: ctx.user.id },
+      data: {
+        userId: ctx.user.id,
+        slug: input.slug,
+        label: input.label,
+        color: input.color ?? "#7cb5a5",
+        order: input.order ?? 0,
+      },
     });
+  }),
+
+  updateType: onboardedProcedure.input(journalTypeUpdateInput).mutation(async ({ ctx, input }) => {
+    const t = await ctx.db.journalType.findFirst({
+      where: { id: input.id, userId: ctx.user.id },
+    });
+    if (!t) throw new TRPCError({ code: "NOT_FOUND" });
+    const { id, ...patch } = input;
+    return ctx.db.journalType.update({ where: { id }, data: patch });
   }),
 
   deleteType: onboardedProcedure
@@ -39,18 +50,22 @@ export const journalRouter = router({
       return { ok: true };
     }),
 
-  listEntries: onboardedProcedure
-    .input(z.object({ typeId: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const type = await ctx.db.journalType.findFirst({
-        where: { id: input.typeId, userId: ctx.user.id },
-      });
-      if (!type) throw new TRPCError({ code: "NOT_FOUND" });
-      return ctx.db.journalEntry.findMany({
-        where: { userId: ctx.user.id, typeId: input.typeId },
-        orderBy: { createdAt: "desc" },
-      });
+  listByRange: onboardedProcedure.input(journalRangeInput).query(({ ctx, input }) =>
+    ctx.db.journalEntry.findMany({
+      where: {
+        userId: ctx.user.id,
+        date: { gte: input.from, lte: input.to },
+      },
+      orderBy: [{ date: "asc" }, { createdAt: "asc" }],
     }),
+  ),
+
+  listByDate: onboardedProcedure.input(journalByDateInput).query(({ ctx, input }) =>
+    ctx.db.journalEntry.findMany({
+      where: { userId: ctx.user.id, date: input.date },
+      orderBy: { createdAt: "asc" },
+    }),
+  ),
 
   getEntry: onboardedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
     const entry = await ctx.db.journalEntry.findFirst({
@@ -68,24 +83,15 @@ export const journalRouter = router({
         where: { id: input.typeId, userId: ctx.user.id },
       });
       if (!type) throw new TRPCError({ code: "NOT_FOUND" });
-      const entryId = `e_${crypto.randomUUID().slice(0, 12)}`;
-      const docId = docIdFor(ctx.user.id, entryId);
-      const entry = await ctx.db.$transaction(async (tx) => {
-        await tx.blockSuiteDoc.create({
-          data: { id: docId, userId: ctx.user.id, state: Buffer.from([]) },
-        });
-        return tx.journalEntry.create({
-          data: {
-            id: entryId,
-            userId: ctx.user.id,
-            typeId: input.typeId,
-            title: input.title,
-            status: "idea",
-            bsDocId: docId,
-          },
-        });
+      return ctx.db.journalEntry.create({
+        data: {
+          userId: ctx.user.id,
+          typeId: input.typeId,
+          date: input.date,
+          title: input.title,
+          content: input.content ?? "",
+        },
       });
-      return entry;
     }),
 
   updateEntry: onboardedProcedure
@@ -94,6 +100,12 @@ export const journalRouter = router({
       const { id, ...patch } = input;
       const e = await ctx.db.journalEntry.findFirst({ where: { id, userId: ctx.user.id } });
       if (!e) throw new TRPCError({ code: "NOT_FOUND" });
+      if (patch.typeId) {
+        const t = await ctx.db.journalType.findFirst({
+          where: { id: patch.typeId, userId: ctx.user.id },
+        });
+        if (!t) throw new TRPCError({ code: "NOT_FOUND", message: "Type not found" });
+      }
       return ctx.db.journalEntry.update({ where: { id }, data: patch });
     }),
 
@@ -104,12 +116,7 @@ export const journalRouter = router({
         where: { id: input.id, userId: ctx.user.id },
       });
       if (!e) throw new TRPCError({ code: "NOT_FOUND" });
-      await ctx.db.$transaction([
-        ctx.db.journalEntry.delete({ where: { id: input.id } }),
-        ctx.db.blockSuiteDoc.delete({ where: { id: e.bsDocId } }),
-      ]);
+      await ctx.db.journalEntry.delete({ where: { id: input.id } });
       return { ok: true };
     }),
 });
-
-export const journalRootHelpers = { docIdFor, rootIdFor };

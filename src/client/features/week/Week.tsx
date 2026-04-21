@@ -4,6 +4,7 @@ import { trpc } from "../../trpc";
 import { useTodayDate } from "../../hooks/useTodayDate";
 import { IconArrow } from "../../components/icons";
 import { EmptyState } from "../../components/EmptyState";
+import { SectionDivider } from "../../components/SectionDivider";
 
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -40,7 +41,7 @@ export default function Week() {
   }
 
   return (
-    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1120px] mx-auto">
+    <div className="px-5 pt-10 pb-6 lg:p-14 w-full max-w-[1440px] mx-auto">
       <header className="flex items-end justify-between gap-6 flex-wrap mb-8">
         <div>
           <div className="eyebrow">
@@ -91,7 +92,8 @@ export default function Week() {
         </div>
       )}
 
-      <div className="mt-8">
+      <SectionDivider label="Habits — this week" />
+      <div>
         <div className="strip-dow week-dow-grid">
           {DOW.map((d) => (
             <div key={d}>{d}</div>
@@ -113,9 +115,9 @@ export default function Week() {
                 </div>
               </div>
               <div className="strip-row-track week-track-grid">
-                {r.slabs.map((s, i) => (
+                {r.slabs.map((s) => (
                   <div
-                    key={i}
+                    key={s.date}
                     className={"slab " + s.state + (s.isToday ? " today" : "")}
                     title={`${s.date}: ${s.state}${s.partial ? " (2-min)" : ""}`}
                   />
@@ -151,11 +153,9 @@ export default function Week() {
       </div>
 
       {bh.data && bh.data.rows.length > 0 && (
-        <div className="mt-10">
-          <div className="eyebrow" style={{ color: "var(--ink-3)" }}>
-            Bad habits weakened
-          </div>
-          <div className="strip-dow week-dow-grid mt-3">
+        <div>
+          <SectionDivider label="Bad habits — weakened this week" />
+          <div className="strip-dow week-dow-grid">
             {DOW.map((d) => (
               <div key={d}>{d}</div>
             ))}
@@ -174,9 +174,9 @@ export default function Week() {
                 </div>
               </div>
               <div className="strip-row-track week-track-grid">
-                {r.slabs.map((s, i) => (
+                {r.slabs.map((s) => (
                   <div
-                    key={i}
+                    key={s.date}
                     className={"slab " + (s.weakened ? "done" : "pending")}
                     title={`${s.date}: ${s.weakened ? "weakened" : "open"}`}
                   />

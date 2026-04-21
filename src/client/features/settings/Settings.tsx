@@ -4,6 +4,7 @@ import { trpc } from "../../trpc";
 import { useAuth } from "../../providers/auth";
 import { usePush } from "../../providers/push";
 import { ThemeToggle } from "../../components/ThemeToggle";
+import { SectionDivider } from "../../components/SectionDivider";
 
 export default function Settings() {
   const nav = useNavigate();
@@ -65,7 +66,8 @@ export default function Settings() {
       <div className="eyebrow">Settings</div>
       <h1 className="title-lg mt-2">Your knobs.</h1>
 
-      <section className="card mt-8">
+      <SectionDivider label="Account" />
+      <section className="card">
         <div className="eyebrow">Account</div>
         <div className="mt-3" style={{ fontSize: 14 }}>
           <div>
@@ -87,7 +89,8 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className="card mt-6">
+      <SectionDivider label="Appearance" />
+      <section className="card">
         <div className="eyebrow">Appearance</div>
         <p className="body-sm mt-3">Pick your canvas.</p>
         <div className="mt-4">
@@ -95,9 +98,11 @@ export default function Settings() {
         </div>
       </section>
 
+      <SectionDivider label="Import data" />
       <ImportJsonCard />
 
-      <section className="card mt-6">
+      <SectionDivider label="Danger zone" />
+      <section className="card">
         <div className="eyebrow">Restart onboarding</div>
         <p className="body-sm mt-3">
           Wipe identities, backlog, rules, journal types, config, votes, reviews, and journal
@@ -121,7 +126,8 @@ export default function Settings() {
         </button>
       </section>
 
-      <section className="card mt-6">
+      <SectionDivider label="Notifications" />
+      <section className="card">
         <div className="eyebrow">Notifications</div>
         <p className="body-sm mt-3">Get a lock-screen push at each identity's scheduled time.</p>
         {!push.vapidConfigured && (
@@ -218,7 +224,7 @@ function ImportJsonCard() {
   }
 
   return (
-    <section className="card mt-6">
+    <section className="card">
       <div className="eyebrow">Import JSON</div>
       <p className="body-sm mt-3">
         Paste identities, future identities (backlog), rules, or journal types. Any missing key is

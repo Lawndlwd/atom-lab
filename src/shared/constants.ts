@@ -36,19 +36,11 @@ export const REVIEW_QUESTIONS = [
   },
 ] as const;
 
-export type ReviewKey = (typeof REVIEW_QUESTIONS)[number]["key"];
-
 export const CADENCES = [
   { key: "daily", label: "Daily" },
   { key: "weekdays", label: "Weekdays" },
   { key: "5x_week", label: "5× / week" },
   { key: "weekends", label: "Weekends" },
-] as const;
-
-export const JOURNAL_STATUS = [
-  { key: "idea", label: "Idea" },
-  { key: "building", label: "Building" },
-  { key: "shipped", label: "Shipped" },
 ] as const;
 
 export const DEFAULT_IDENTITY_SUGGESTIONS = [
@@ -73,6 +65,8 @@ export const DEFAULT_IDENTITY_SUGGESTIONS = [
 ];
 
 export const DEFAULT_JOURNAL_TYPES = [
-  { slug: "log", label: "Log", order: 0 },
-  { slug: "lab", label: "Lab", order: 1 },
+  { slug: "daily", label: "Daily", color: "#7cb5a5", order: 0 },
+  { slug: "lab", label: "Lab", color: "#c9a66b", order: 1 },
+  { slug: "dreams", label: "Dreams", color: "#c87363", order: 2 },
+  { slug: "ideas", label: "Ideas", color: "#7a9cb5", order: 3 },
 ];

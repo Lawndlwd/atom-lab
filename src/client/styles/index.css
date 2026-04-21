@@ -75,7 +75,7 @@ html {
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
-  background-size: 100px 100px;
+  background-size: 75px 75px;
   background-attachment: fixed;
   color: var(--ink);
   font-family: "Inter", system-ui, sans-serif;
@@ -157,29 +157,98 @@ html {
 .btn-primary {
   background: var(--teal);
   color: var(--teal-ink);
+  transition:
+    filter 120ms ease,
+    opacity 120ms ease,
+    background 120ms ease;
 }
 .btn-primary:hover {
   filter: brightness(1.08);
 }
-.btn-primary:disabled {
-  background: var(--bg-1);
-  color: var(--ink-4);
+.btn-primary:active {
+  filter: brightness(0.9);
+}
+.btn-primary:disabled,
+.btn-primary[aria-disabled="true"] {
+  background: var(--teal);
+  color: var(--teal-ink);
+  opacity: 0.4;
+  filter: none;
   cursor: not-allowed;
 }
 .btn-secondary {
-  background: transparent;
+  background: var(--bg-1);
   color: var(--ink);
   border: 0.5px solid var(--line-2);
+  transition:
+    background 120ms ease,
+    opacity 120ms ease;
 }
 .btn-secondary:hover {
-  background: var(--bg-1);
+  background: var(--bg-2);
+}
+.btn-secondary:active {
+  background: var(--bg-3);
+}
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .btn-ghost {
-  color: var(--ink-3);
+  color: var(--ink-2);
   padding: 8px 12px;
+  transition:
+    color 120ms ease,
+    background 120ms ease,
+    opacity 120ms ease;
 }
 .btn-ghost:hover {
   color: var(--ink);
+  background: color-mix(in srgb, var(--teal) 10%, transparent);
+}
+.btn-ghost:active {
+  color: var(--teal);
+  background: var(--teal-soft);
+}
+.btn-ghost:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-danger {
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+  color: var(--red);
+  border: 0.5px solid color-mix(in srgb, var(--red) 35%, transparent);
+  transition:
+    background 120ms ease,
+    opacity 120ms ease;
+}
+.btn-danger:hover {
+  background: color-mix(in srgb, var(--red) 22%, transparent);
+}
+.btn-danger:active {
+  background: color-mix(in srgb, var(--red) 32%, transparent);
+}
+.btn-danger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-accent {
+  background: var(--teal-soft);
+  color: var(--teal);
+  border: 0.5px solid color-mix(in srgb, var(--teal) 35%, transparent);
+  transition:
+    background 120ms ease,
+    opacity 120ms ease;
+}
+.btn-accent:hover {
+  background: color-mix(in srgb, var(--teal) 20%, transparent);
+}
+.btn-accent:active {
+  background: color-mix(in srgb, var(--teal) 28%, transparent);
+}
+.btn-accent:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .chip {
@@ -240,7 +309,6 @@ html {
 
 .card {
   background: var(--bg);
-  border: 0.5px solid var(--line-2);
   border-radius: var(--radius-lg);
   padding: 22px;
 }
@@ -368,6 +436,35 @@ html {
 }
 .tl-streak.low {
   color: var(--amber);
+}
+.tl-reframe-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 3px 10px 3px 8px;
+  font-family: "Geist Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: transparent;
+  border: 0.5px solid var(--line-2);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+.tl-reframe-toggle:hover {
+  color: var(--teal);
+  border-color: color-mix(in srgb, var(--teal) 40%, transparent);
+  background: var(--teal-soft);
+}
+.tl-reframe-toggle[aria-expanded="true"] {
+  color: var(--teal);
+  border-color: color-mix(in srgb, var(--teal) 40%, transparent);
 }
 
 @media (min-width: 1024px) {
@@ -524,8 +621,7 @@ html {
 
 /* ---------- HABITS ---------- */
 .rule-banner {
-  background: linear-gradient(135deg, rgba(124, 181, 165, 0.1), rgba(124, 181, 165, 0.02));
-  border: 0.5px solid rgba(124, 181, 165, 0.25);
+  background: color-mix(in srgb, var(--teal) 14%, var(--bg));
   border-radius: var(--radius-lg);
   padding: 24px 28px;
   display: flex;
@@ -632,6 +728,259 @@ html {
   color: var(--amber);
 }
 
+.law-grid {
+  display: flex;
+  flex-direction: column;
+  border-top: 0.5px solid var(--line);
+  margin-top: 10px;
+}
+.law-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 16px;
+  padding: 12px 2px;
+  border-bottom: 0.5px solid var(--line);
+  align-items: flex-start;
+}
+.law-row:last-child {
+  border-bottom: none;
+}
+.law-row .law-k {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-3);
+  font-family: "Geist Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding-top: 1px;
+}
+.law-row .law-v {
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+.law-row .law-v.empty {
+  color: var(--ink-4);
+  font-style: italic;
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 0 16px;
+  position: relative;
+}
+.section-divider-bar {
+  display: inline-block;
+  width: 3px;
+  height: 20px;
+  background: var(--teal);
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px var(--teal-soft);
+}
+.section-divider-label {
+  font-family: "Geist Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.section-divider-rail {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--line-2) 0%, var(--line-2) 60%, transparent 100%);
+  position: relative;
+}
+.section-divider-rail::before,
+.section-divider-rail::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--teal);
+  opacity: 0.5;
+  transform: translateY(-50%);
+}
+.section-divider-rail::before {
+  left: 22%;
+}
+.section-divider-rail::after {
+  left: 46%;
+  opacity: 0.3;
+}
+.section-divider-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-soft);
+  flex-shrink: 0;
+}
+
+.kebab-wrap {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+}
+.kebab-btn {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.kebab-btn:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+.kebab-menu {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  min-width: 160px;
+  background: var(--bg);
+  border: 0.5px solid var(--line-2);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.kebab-item {
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+.kebab-item:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+.kebab-item.tone-red {
+  color: var(--red);
+}
+.kebab-item.tone-teal {
+  color: var(--teal);
+}
+.kebab-host {
+  position: relative;
+}
+
+.habits-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 28px;
+}
+@media (min-width: 1024px) {
+  .habits-layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 32px;
+    align-items: start;
+  }
+  .habits-layout > aside {
+    position: sticky;
+    top: 20px;
+  }
+}
+
+.habit-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.habit-grid.stack {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .habit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+@media (min-width: 1400px) {
+  .habit-grid.wide-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.tab-bar {
+  display: inline-flex;
+  gap: 2px;
+  background: transparent;
+  border: 0.5px solid var(--line-2);
+  border-radius: 999px;
+  padding: 3px;
+}
+.tab-bar .tab {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-family: "Geist Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.tab-bar .tab.active {
+  background: var(--teal-soft);
+  color: var(--teal);
+  box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--teal) 30%, transparent);
+}
+.tab-bar .tab .count {
+  color: var(--ink-4);
+  margin-left: 6px;
+  font-size: 10px;
+}
+.tab-bar .tab.active .count {
+  color: color-mix(in srgb, var(--teal) 60%, transparent);
+}
+
+.habit-card-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.habit-card-head .title {
+  font-family: "Fraunces", serif;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.habit-card-head .title.red {
+  color: var(--red);
+}
+.habit-card-head .sub {
+  font-family: "Geist Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-top: 6px;
+}
+
 .backlog-row {
   display: flex;
   justify-content: space-between;
@@ -657,54 +1006,411 @@ html {
   border: 0.5px solid var(--line-2);
 }
 
-/* ---------- JOURNAL editor (BlockSuite) ---------- */
+/* ---------- JOURNAL calendar ---------- */
+.cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 18px 0 22px;
+}
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cal-title {
+  font-family: "Fraunces", serif;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  padding: 0 8px;
+  min-width: 180px;
+  text-align: center;
+}
+@media (min-width: 1024px) {
+  .cal-title {
+    font-size: 24px;
+    min-width: 240px;
+  }
+}
+
+/* week view */
+.cal-week-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (min-width: 720px) {
+  .cal-week-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .cal-week-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+.cal-week-cell {
+  background: var(--bg);
+  border: 0;
+  border-radius: var(--r-md);
+  padding: 12px 10px 10px;
+  min-height: 160px;
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+.cal-week-cell:hover {
+  background: var(--bg-1);
+}
+.cal-week-cell.today {
+  box-shadow:
+    inset 0 0 0 1px var(--teal),
+    0 0 0 3px var(--teal-soft);
+}
+.cal-week-cell .date-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  justify-content: space-between;
+}
+.cal-week-cell .dow {
+  font-family: "Geist Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.cal-week-cell .date-num {
+  font-family: "Fraunces", serif;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--ink);
+}
+.cal-entry-chip {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 5px 0;
+  border-bottom: 0.5px solid var(--line-2);
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.cal-entry-chip:last-child {
+  border-bottom: 0;
+}
+.cal-entry-chip .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 6px;
+}
+.cal-entry-chip .t {
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* month view */
+.cal-month-head {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0 4px 8px;
+  font-family: "Geist Mono", monospace;
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+@media (min-width: 1024px) {
+  .cal-month-head {
+    gap: 8px;
+    font-size: 10.5px;
+  }
+}
+.cal-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: minmax(68px, auto);
+  gap: 6px;
+}
+@media (min-width: 1024px) {
+  .cal-month-grid {
+    gap: 8px;
+    grid-auto-rows: minmax(104px, auto);
+  }
+}
+.cal-month-cell {
+  background: var(--bg);
+  border: 0;
+  border-radius: var(--r-md);
+  padding: 8px 8px 6px;
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+@media (min-width: 1024px) {
+  .cal-month-cell {
+    padding: 10px 10px 8px;
+    gap: 6px;
+  }
+}
+.cal-month-cell:hover {
+  background: var(--bg-1);
+}
+.cal-month-cell.muted {
+  opacity: 0.35;
+}
+.cal-month-cell.today {
+  box-shadow:
+    inset 0 0 0 1px var(--teal),
+    0 0 0 3px var(--teal-soft);
+}
+.cal-month-cell.has-entry {
+  background: color-mix(in srgb, var(--teal) 5%, var(--bg));
+}
+.cal-month-cell .num {
+  font-family: "Fraunces", serif;
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1;
+}
+@media (min-width: 1024px) {
+  .cal-month-cell .num {
+    font-size: 17px;
+  }
+}
+.cal-month-cell .hint {
+  font-size: 11px;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-height: 14px;
+}
+.cal-dots {
+  display: flex;
+  gap: 3px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.cal-dots .d {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+/* year view */
+.cal-year-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (min-width: 720px) {
+  .cal-year-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .cal-year-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+.cal-year-mo {
+  background: var(--bg);
+  border-radius: var(--r-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cal-year-mo .mo-title {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+  font-family: "Fraunces", serif;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  cursor: pointer;
+  line-height: 1;
+}
+.cal-year-mo .mo-title:hover {
+  color: var(--teal);
+}
+.cal-year-mo .mo-title .count {
+  font-family: "Geist Mono", monospace;
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
+}
+.cal-year-mini {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2.5px;
+}
+.cal-year-mini .dowh {
+  font-family: "Geist Mono", monospace;
+  font-size: 8px;
+  color: var(--ink-4);
+  text-align: center;
+  letter-spacing: 0.08em;
+  padding-bottom: 2px;
+}
+.cal-year-mini .c {
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  border-radius: 3px;
+  background: var(--bg-2);
+  cursor: pointer;
+  transition: background 100ms ease;
+}
+.cal-year-mini .c:hover {
+  background: var(--bg-3);
+}
+.cal-year-mini .c.other {
+  background: transparent;
+  cursor: default;
+}
+.cal-year-mini .c.has {
+  background: var(--teal);
+}
+.cal-year-mini .c.has:hover {
+  filter: brightness(1.1);
+  background: var(--teal);
+}
+.cal-year-mini .c.today {
+  outline: 1.5px solid var(--ink);
+  outline-offset: 1px;
+}
+
+/* day view */
+.day-entry-card {
+  background: var(--bg);
+  border: 0;
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  width: 100%;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+.day-entry-card:hover {
+  background: var(--bg-1);
+}
+.day-entry-card .accent {
+  width: 3px;
+  border-radius: 3px;
+  align-self: stretch;
+  min-height: 36px;
+}
+.day-entry-card > div {
+  min-width: 0;
+}
+.day-entry-card .t {
+  font-family: "Fraunces", serif;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.day-entry-card .x {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  margin-top: 6px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ---------- JOURNAL editor (Milkdown Crepe) ---------- */
 .journal-editor-wrap {
   min-height: 420px;
-  padding: 10px;
 }
-.journal-editor affine-editor-container {
-  display: block;
-  min-height: 420px;
-  height: 100%;
+.journal-editor-wrap .milkdown {
+  --crepe-color-background: transparent;
+  --crepe-color-on-background: var(--ink);
+  --crepe-color-surface: var(--bg);
+  --crepe-color-surface-low: var(--bg-1);
+  --crepe-color-on-surface: var(--ink);
+  --crepe-color-on-surface-variant: var(--ink-2);
+  --crepe-color-outline: var(--line-2);
+  --crepe-color-primary: var(--teal);
+  --crepe-color-secondary: var(--bg-2);
+  --crepe-color-on-secondary: var(--ink);
+  --crepe-color-inverse: var(--bg-3);
+  --crepe-color-on-inverse: var(--ink);
+  --crepe-color-inline-code: var(--red);
+  --crepe-color-error: var(--red);
+  --crepe-color-hover: var(--bg-2);
+  --crepe-color-selected: color-mix(in srgb, var(--teal) 18%, transparent);
+  --crepe-color-inline-area: var(--bg-2);
+  --crepe-font-title: "Fraunces", serif;
+  --crepe-font-default: "Inter", system-ui, sans-serif;
+  --crepe-font-code: "Geist Mono", ui-monospace, monospace;
+  --crepe-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --crepe-shadow-2: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
-.journal-editor {
-  min-height: 420px;
-  height: 100%;
+.journal-editor-wrap .milkdown,
+.journal-editor-wrap .ProseMirror {
+  background: transparent;
+  color: var(--ink);
+  min-height: 380px;
 }
-
-/* BlockSuite's <page-editor> ships its own `background: var(--affine-background-primary-color)` rule
-   that wins over our CSS-var remap. Force transparent so our card shows through in both themes. */
-page-editor {
-  background: transparent !important;
-  color: var(--ink) !important;
+.journal-editor-wrap .ProseMirror {
+  padding: 14px 18px;
+  font-size: 16px;
+  line-height: 1.7;
+  outline: none;
 }
-
-/* BlockSuite theme overrides — map Affine's CSS vars to our palette so the
-   editor inherits the canvas/ink tokens and works across dark + light. */
-html {
-  --affine-background-primary-color: var(--bg);
-  --affine-background-secondary-color: var(--bg-1);
-  --affine-background-tertiary-color: var(--bg-2);
-  --affine-background-modal-color: var(--bg);
-  --affine-background-overlay-panel-color: var(--bg-1);
-  --affine-text-primary-color: var(--ink);
-  --affine-text-secondary-color: var(--ink-2);
-  --affine-text-disable-color: var(--ink-4);
-  --affine-text-emphasis-color: var(--teal);
-  --affine-border-color: var(--line-2);
-  --affine-divider-color: var(--line);
-  --affine-brand-color: var(--teal);
-  --affine-hover-color: var(--bg-2);
-  --affine-hover-color-filled: var(--bg-2);
-  --affine-icon-color: var(--ink-2);
-  --affine-icon-secondary: var(--ink-3);
-  --affine-placeholder-color: var(--ink-3);
-  --affine-note-background-white: var(--bg);
-  --affine-note-background-black: var(--bg);
-  --affine-editor-width: 100%;
-  --affine-editor-side-padding: 24px;
-  --affine-font-family: "Inter", system-ui, sans-serif;
-  --affine-font-sans-family: "Inter", system-ui, sans-serif;
-  --affine-font-serif-family: "Fraunces", serif;
-  --affine-font-mono-family: "Geist Mono", ui-monospace, monospace;
+.journal-editor-wrap .ProseMirror:focus {
+  outline: none;
 }

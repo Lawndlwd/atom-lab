@@ -41,6 +41,8 @@ export const identityCreate = z.object({
 });
 export const identityUpdate = identityCreate.partial().extend({ id: z.string().min(1) });
 
+export const hexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use #RRGGBB");
+
 export const journalTypeInput = z.object({
   slug: z
     .string()
@@ -48,7 +50,15 @@ export const journalTypeInput = z.object({
     .max(40)
     .regex(/^[a-z0-9_-]+$/),
   label: z.string().min(1).max(40),
+  color: hexColorSchema.optional(),
   order: z.number().int().min(0).max(50).default(0),
+});
+
+export const journalTypeUpdateInput = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1).max(40).optional(),
+  color: hexColorSchema.optional(),
+  order: z.number().int().min(0).max(50).optional(),
 });
 
 export const configInput = z.object({
@@ -88,14 +98,30 @@ export const reviewSetAnswerInput = z.object({
   text: z.string().max(10000),
 });
 
+export const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
 export const journalCreateEntryInput = z.object({
   typeId: z.string().min(1),
+  date: dateOnlySchema,
   title: z.string().min(1).max(200),
+  content: z.string().max(50_000).optional(),
 });
 export const journalUpdateEntryInput = z.object({
   id: z.string().min(1),
+  typeId: z.string().min(1).optional(),
+  date: dateOnlySchema.optional(),
   title: z.string().min(1).max(200).optional(),
+  content: z.string().max(50_000).optional(),
   status: journalStatusSchema.optional(),
+});
+
+export const journalRangeInput = z.object({
+  from: dateOnlySchema,
+  to: dateOnlySchema,
+});
+
+export const journalByDateInput = z.object({
+  date: dateOnlySchema,
 });
 
 export const backlogCreateInput = z.object({
@@ -128,6 +154,15 @@ export const ruleUpdateInput = z.object({
   order: z.number().int().min(0).max(1000).optional(),
 });
 
+export const badHabitCreateInput = z.object({
+  name: z.string().min(1).max(120),
+  description: z.string().max(400).optional(),
+  invisibleAction: z.string().max(280).optional(),
+  unattractiveReframe: z.string().max(280).optional(),
+  difficultAction: z.string().max(280).optional(),
+  unsatisfyingConsequence: z.string().max(280).optional(),
+});
+
 export const importInput = z.object({
   identities: z.array(identityCreate).max(50).optional(),
   backlog: z.array(backlogCreateInput).max(50).optional(),
@@ -143,15 +178,7 @@ export const importInput = z.object({
     )
     .max(50)
     .optional(),
-});
-
-export const badHabitCreateInput = z.object({
-  name: z.string().min(1).max(120),
-  description: z.string().max(400).optional(),
-  invisibleAction: z.string().max(280).optional(),
-  unattractiveReframe: z.string().max(280).optional(),
-  difficultAction: z.string().max(280).optional(),
-  unsatisfyingConsequence: z.string().max(280).optional(),
+  badHabits: z.array(badHabitCreateInput).max(50).optional(),
 });
 export const badHabitUpdateInput = z.object({
   id: z.string().min(1),
